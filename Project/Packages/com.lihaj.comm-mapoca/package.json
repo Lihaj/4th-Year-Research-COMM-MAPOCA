@@ -1,0 +1,21 @@
+{
+  "name": "com.lihaj.comm-mapoca",
+  "version": "0.1.0",
+  "displayName": "Comm-MAPOCA",
+  "description": "Targeted multi-agent communication (TarMAC-style) for MA-POCA cooperative training in Unity ML-Agents. Provides a CommChannel message board with configurable topology (all-to-all or directed links), automatic CommBuffer sensor configuration, a CommAgent base class that broadcasts tanh-bounded messages from continuous action slots, and communication-flow gizmos. Pairs with the comm_mapoca Python trainer.",
+  "unity": "2022.3",
+  "documentationUrl": "https://github.com/Lihaj/4th-Year-Research-COMM-MAPOCA",
+  "dependencies": {
+    "com.unity.ml-agents": "4.0.0"
+  },
+  "author": {
+    "name": "Lihaj Wickramasinghe"
+  },
+  "keywords": [
+    "reinforcement-learning",
+    "multi-agent",
+    "communication",
+    "ma-poca",
+    "tarmac"
+  ]
+}
