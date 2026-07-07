@@ -1,0 +1,65 @@
+{
+    "CommMAPOCABrain": {
+        "checkpoints": [
+            {
+                "steps": 15499992,
+                "file_path": "results\\CommMAPOCA_run4\\CommMAPOCABrain\\CommMAPOCABrain-15499992.onnx",
+                "reward": 0.0,
+                "creation_time": 1783325588.5782607,
+                "auxillary_file_paths": [
+                    "results\\CommMAPOCA_run4\\CommMAPOCABrain\\CommMAPOCABrain-15499992.pt"
+                ]
+            },
+            {
+                "steps": 15999963,
+                "file_path": "results\\CommMAPOCA_run4\\CommMAPOCABrain\\CommMAPOCABrain-15999963.onnx",
+                "reward": 0.0,
+                "creation_time": 1783326276.3275328,
+                "auxillary_file_paths": [
+                    "results\\CommMAPOCA_run4\\CommMAPOCABrain\\CommMAPOCABrain-15999963.pt"
+                ]
+            },
+            {
+                "steps": 16499993,
+                "file_path": "results\\CommMAPOCA_run4\\CommMAPOCABrain\\CommMAPOCABrain-16499993.onnx",
+                "reward": 0.0,
+                "creation_time": 1783326961.7419214,
+                "auxillary_file_paths": [
+                    "results\\CommMAPOCA_run4\\CommMAPOCABrain\\CommMAPOCABrain-16499993.pt"
+                ]
+            },
+            {
+                "steps": 16999983,
+                "file_path": "results\\CommMAPOCA_run4\\CommMAPOCABrain\\CommMAPOCABrain-16999983.onnx",
+                "reward": 0.0,
+                "creation_time": 1783327721.523438,
+                "auxillary_file_paths": [
+                    "results\\CommMAPOCA_run4\\CommMAPOCABrain\\CommMAPOCABrain-16999983.pt"
+                ]
+            },
+            {
+                "steps": 17022051,
+                "file_path": "results\\CommMAPOCA_run4\\CommMAPOCABrain\\CommMAPOCABrain-17022051.onnx",
+                "reward": 0.0,
+                "creation_time": 1783327753.7218451,
+                "auxillary_file_paths": [
+                    "results\\CommMAPOCA_run4\\CommMAPOCABrain\\CommMAPOCABrain-17022051.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 17022051,
+            "file_path": "results\\CommMAPOCA_run4\\CommMAPOCABrain.onnx",
+            "reward": 0.0,
+            "creation_time": 1783327753.7218451,
+            "auxillary_file_paths": [
+                "results\\CommMAPOCA_run4\\CommMAPOCABrain\\CommMAPOCABrain-17022051.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.2.0.dev0",
+        "torch_version": "2.5.1+cu121"
+    }
+}
