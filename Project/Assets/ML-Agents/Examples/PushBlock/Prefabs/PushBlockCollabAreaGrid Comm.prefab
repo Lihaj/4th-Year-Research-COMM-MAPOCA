@@ -1,0 +1,486 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &4566498416117844374
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 8086947156390584041, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_Model
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8086947156390584041, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_BehaviorName
+      value: CommPushBlock
+      objectReference: {fileID: 0}
+    - target: {fileID: 8086947156390584041, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_BehaviorType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8086947156390584041, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_BrainParameters.VectorActionSize.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8086947156390584041, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_BrainParameters.m_ActionSpec.m_NumContinuousActions
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8188317207052398481, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8188317207052398481, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8188317207052398481, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8188317207052398481, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8188317207052398481, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8188317207052398481, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8188317207052398481, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8188317207052398481, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8188317207052398481, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8188317207052398481, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190362017963850688, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: onTriggerEnterEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 7545533890886517922}
+    - target: {fileID: 8190362017963850688, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: onTriggerEnterEvent.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: CommPushBlockEnvController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 8191066182861978101, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: onTriggerEnterEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 7545533890886517922}
+    - target: {fileID: 8191066182861978101, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: onTriggerEnterEvent.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: CommPushBlockEnvController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 8191066182918326562, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: onTriggerEnterEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 7545533890886517922}
+    - target: {fileID: 8191066182918326562, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: onTriggerEnterEvent.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: CommPushBlockEnvController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 8191066183517911094, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: onTriggerEnterEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 7545533890886517922}
+    - target: {fileID: 8191066183517911094, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: onTriggerEnterEvent.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: CommPushBlockEnvController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 8191066184511708581, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: onTriggerEnterEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 7545533890886517922}
+    - target: {fileID: 8191066184511708581, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: onTriggerEnterEvent.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: CommPushBlockEnvController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 8191066184649639635, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: onTriggerEnterEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 7545533890886517922}
+    - target: {fileID: 8191066184649639635, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: onTriggerEnterEvent.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: CommPushBlockEnvController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 8191903532335653025, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_Name
+      value: PushBlockCollabAreaGrid Comm
+      objectReference: {fileID: 0}
+    - target: {fileID: 8734884135852683879, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_Model
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8734884135852683879, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_BehaviorName
+      value: CommPushBlock
+      objectReference: {fileID: 0}
+    - target: {fileID: 8734884135852683879, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_BehaviorType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8734884135852683879, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_BrainParameters.VectorActionSize.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8734884135852683879, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_BrainParameters.m_ActionSpec.m_NumContinuousActions
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 9156758644101515670, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_Model
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 9156758644101515670, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_BehaviorName
+      value: CommPushBlock
+      objectReference: {fileID: 0}
+    - target: {fileID: 9156758644101515670, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_BehaviorType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9156758644101515670, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_BrainParameters.VectorActionSize.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9156758644101515670, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      propertyPath: m_BrainParameters.m_ActionSpec.m_NumContinuousActions
+      value: 6
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 8190299122290044756, guid: f5bbed44a6ea747a687fbbb738eb1730, type: 3}
+    - {fileID: 8695281997955662810, guid: f5bbed44a6ea747a687fbbb738eb1730, type: 3}
+    - {fileID: 9115291448867436587, guid: f5bbed44a6ea747a687fbbb738eb1730, type: 3}
+    - {fileID: 8191903532335653024, guid: f5bbed44a6ea747a687fbbb738eb1730, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8191903532335653025, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7545533890886517922}
+    - targetCorrespondingSourceObject: {fileID: 8191903532335653025, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 765253559347323868}
+    - targetCorrespondingSourceObject: {fileID: 8190299122290044757, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3036437189073719339}
+    - targetCorrespondingSourceObject: {fileID: 8190299122290044757, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5614800209860196148}
+    - targetCorrespondingSourceObject: {fileID: 8695281997955662811, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9137107714965305545}
+    - targetCorrespondingSourceObject: {fileID: 8695281997955662811, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3610287112152727979}
+    - targetCorrespondingSourceObject: {fileID: 9115291448867436586, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1206618872238270985}
+    - targetCorrespondingSourceObject: {fileID: 9115291448867436586, guid: f5bbed44a6ea747a687fbbb738eb1730,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3705075420811386936}
+  m_SourcePrefab: {fileID: 100100000, guid: f5bbed44a6ea747a687fbbb738eb1730, type: 3}
+--- !u!1 &4746639364164989372 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9115291448867436586, guid: f5bbed44a6ea747a687fbbb738eb1730,
+    type: 3}
+  m_PrefabInstance: {fileID: 4566498416117844374}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1206618872238270985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4746639364164989372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd8012d5925524537b27131fef517017, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.ML-Agents::Unity.MLAgents.Sensors.BufferSensorComponent
+  m_SensorName: BufferSensor
+  m_ObservableSize: 0
+  m_MaxNumObservables: 0
+--- !u!114 &3705075420811386936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4746639364164989372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6dd98f76b1080248a8b84abe8c7aa17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CommPushAgentCollab
+  agentParameters:
+    maxStep: 0
+  hasUpgradedFromAgentParameters: 1
+  MaxStep: 0
+  channel: {fileID: 0}
+  readSmuggledAttention: 0
+--- !u!1 &5184961439070784077 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8695281997955662811, guid: f5bbed44a6ea747a687fbbb738eb1730,
+    type: 3}
+  m_PrefabInstance: {fileID: 4566498416117844374}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &9137107714965305545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5184961439070784077}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd8012d5925524537b27131fef517017, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.ML-Agents::Unity.MLAgents.Sensors.BufferSensorComponent
+  m_SensorName: BufferSensor
+  m_ObservableSize: 0
+  m_MaxNumObservables: 0
+--- !u!114 &3610287112152727979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5184961439070784077}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6dd98f76b1080248a8b84abe8c7aa17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CommPushAgentCollab
+  agentParameters:
+    maxStep: 0
+  hasUpgradedFromAgentParameters: 1
+  MaxStep: 0
+  channel: {fileID: 0}
+  readSmuggledAttention: 0
+--- !u!1 &5688058154876987703 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8191903532335653025, guid: f5bbed44a6ea747a687fbbb738eb1730,
+    type: 3}
+  m_PrefabInstance: {fileID: 4566498416117844374}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7545533890886517922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5688058154876987703}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a4bbcbd68d22164481d4f4f89351a78, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CommPushBlockEnvController
+  MaxEnvironmentSteps: 5000
+  areaBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  ground: {fileID: 5689911593653395253}
+  area: {fileID: 5688058154876987703}
+  AgentsList:
+  - Agent: {fileID: 5614800209860196148}
+    StartingPos: {x: 0, y: 0, z: 0}
+    StartingRot: {x: 0, y: 0, z: 0, w: 0}
+    Rb: {fileID: 0}
+  - Agent: {fileID: 3610287112152727979}
+    StartingPos: {x: 0, y: 0, z: 0}
+    StartingRot: {x: 0, y: 0, z: 0, w: 0}
+    Rb: {fileID: 0}
+  - Agent: {fileID: 3705075420811386936}
+    StartingPos: {x: 0, y: 0, z: 0}
+    StartingRot: {x: 0, y: 0, z: 0, w: 0}
+    Rb: {fileID: 0}
+  BlocksList:
+  - T: {fileID: 5691424303634151535}
+    StartingPos: {x: 0, y: 0, z: 0}
+    StartingRot: {x: 0, y: 0, z: 0, w: 0}
+    Rb: {fileID: 0}
+  - T: {fileID: 5689160506226970434}
+    StartingPos: {x: 0, y: 0, z: 0}
+    StartingRot: {x: 0, y: 0, z: 0, w: 0}
+    Rb: {fileID: 0}
+  - T: {fileID: 5689160506357470256}
+    StartingPos: {x: 0, y: 0, z: 0}
+    StartingRot: {x: 0, y: 0, z: 0, w: 0}
+    Rb: {fileID: 0}
+  - T: {fileID: 5689160507984527541}
+    StartingPos: {x: 0, y: 0, z: 0}
+    StartingRot: {x: 0, y: 0, z: 0, w: 0}
+    Rb: {fileID: 0}
+  - T: {fileID: 5689160507242197409}
+    StartingPos: {x: 0, y: 0, z: 0}
+    StartingRot: {x: 0, y: 0, z: 0, w: 0}
+    Rb: {fileID: 0}
+  - T: {fileID: 5689160507926605920}
+    StartingPos: {x: 0, y: 0, z: 0}
+    StartingRot: {x: 0, y: 0, z: 0, w: 0}
+    Rb: {fileID: 0}
+  UseRandomAgentRotation: 1
+  UseRandomAgentPosition: 1
+  UseRandomBlockRotation: 1
+  UseRandomBlockPosition: 1
+  commChannel: {fileID: 0}
+--- !u!114 &765253559347323868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5688058154876987703}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a0c5896652f66b4bb870eb5ba3ed02a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Lihaj.CommMAPOCA::Lihaj.CommMAPOCA.CommChannel
+  messageSize: 4
+  maxMessagesPerReceiver: 10
+  topology: 0
+  directedLinks: []
+  allowSelfMessages: 0
+  showFlowGizmos: 1
+  gizmoAttentionCutoff: 0.05
+--- !u!4 &5689160506226970434 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8191066184649639636, guid: f5bbed44a6ea747a687fbbb738eb1730,
+    type: 3}
+  m_PrefabInstance: {fileID: 4566498416117844374}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5689160506357470256 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8191066184511708582, guid: f5bbed44a6ea747a687fbbb738eb1730,
+    type: 3}
+  m_PrefabInstance: {fileID: 4566498416117844374}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5689160507242197409 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8191066183517911095, guid: f5bbed44a6ea747a687fbbb738eb1730,
+    type: 3}
+  m_PrefabInstance: {fileID: 4566498416117844374}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5689160507926605920 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8191066182861978102, guid: f5bbed44a6ea747a687fbbb738eb1730,
+    type: 3}
+  m_PrefabInstance: {fileID: 4566498416117844374}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5689160507984527541 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8191066182918326563, guid: f5bbed44a6ea747a687fbbb738eb1730,
+    type: 3}
+  m_PrefabInstance: {fileID: 4566498416117844374}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5689911593653395253 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8190313173186827939, guid: f5bbed44a6ea747a687fbbb738eb1730,
+    type: 3}
+  m_PrefabInstance: {fileID: 4566498416117844374}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5689945963949205187 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8190299122290044757, guid: f5bbed44a6ea747a687fbbb738eb1730,
+    type: 3}
+  m_PrefabInstance: {fileID: 4566498416117844374}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3036437189073719339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5689945963949205187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd8012d5925524537b27131fef517017, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.ML-Agents::Unity.MLAgents.Sensors.BufferSensorComponent
+  m_SensorName: BufferSensor
+  m_ObservableSize: 0
+  m_MaxNumObservables: 0
+--- !u!114 &5614800209860196148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5689945963949205187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6dd98f76b1080248a8b84abe8c7aa17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CommPushAgentCollab
+  agentParameters:
+    maxStep: 0
+  hasUpgradedFromAgentParameters: 1
+  MaxStep: 0
+  channel: {fileID: 0}
+  readSmuggledAttention: 0
+--- !u!4 &5691424303634151535 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8188518438377222649, guid: f5bbed44a6ea747a687fbbb738eb1730,
+    type: 3}
+  m_PrefabInstance: {fileID: 4566498416117844374}
+  m_PrefabAsset: {fileID: 0}
