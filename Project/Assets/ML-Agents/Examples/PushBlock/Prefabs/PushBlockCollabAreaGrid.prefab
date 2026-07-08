@@ -84,7 +84,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!1 &1704950560014369677
 GameObject:
   m_ObjectHideFlags: 0
@@ -485,7 +485,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!1 &5488091025762841109
 GameObject:
   m_ObjectHideFlags: 0
@@ -655,7 +655,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!1 &5867018048826954104
 GameObject:
   m_ObjectHideFlags: 0
@@ -2551,7 +2551,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!1001 &6067781793364901444
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2560,11 +2560,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8188317207052398481}
     m_Modifications:
-    - target: {fileID: 1548337883655231979, guid: ac01d0f42c5e1463e943632a60d99967,
-        type: 3}
-      propertyPath: m_ShowGizmos
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1548337883655231979, guid: ac01d0f42c5e1463e943632a60d99967,
         type: 3}
       propertyPath: m_RootReference
@@ -2581,6 +2576,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 5022602860645237092, guid: c3aafa29d87154882bcb52488c6446ec,
         type: 3}
+    - target: {fileID: 2598450485826216109, guid: ac01d0f42c5e1463e943632a60d99967,
+        type: 3}
+      propertyPath: m_BehaviorType
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 2598450485826216109, guid: ac01d0f42c5e1463e943632a60d99967,
         type: 3}
       propertyPath: m_InferenceDevice
@@ -2641,11 +2641,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2710286047221272848, guid: ac01d0f42c5e1463e943632a60d99967,
-        type: 3}
-      propertyPath: envController
-      value: 
-      objectReference: {fileID: 0}
     - target: {fileID: 2710286047221272849, guid: ac01d0f42c5e1463e943632a60d99967,
         type: 3}
       propertyPath: m_Name
@@ -2691,11 +2686,6 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1548337883655231979, guid: ac01d0f42c5e1463e943632a60d99967,
         type: 3}
-      propertyPath: m_ShowGizmos
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1548337883655231979, guid: ac01d0f42c5e1463e943632a60d99967,
-        type: 3}
       propertyPath: m_RootReference
       value: 
       objectReference: {fileID: 9115291448867436586}
@@ -2710,6 +2700,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 5022602860645237092, guid: c3aafa29d87154882bcb52488c6446ec,
         type: 3}
+    - target: {fileID: 2598450485826216109, guid: ac01d0f42c5e1463e943632a60d99967,
+        type: 3}
+      propertyPath: m_BehaviorType
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 2598450485826216109, guid: ac01d0f42c5e1463e943632a60d99967,
         type: 3}
       propertyPath: m_InferenceDevice
@@ -2770,11 +2765,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2710286047221272848, guid: ac01d0f42c5e1463e943632a60d99967,
-        type: 3}
-      propertyPath: envController
-      value: 
-      objectReference: {fileID: 0}
     - target: {fileID: 2710286047221272849, guid: ac01d0f42c5e1463e943632a60d99967,
         type: 3}
       propertyPath: m_Name
@@ -2825,11 +2815,6 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1548337883655231979, guid: ac01d0f42c5e1463e943632a60d99967,
         type: 3}
-      propertyPath: m_ShowGizmos
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1548337883655231979, guid: ac01d0f42c5e1463e943632a60d99967,
-        type: 3}
       propertyPath: m_RootReference
       value: 
       objectReference: {fileID: 8695281997955662811}
@@ -2844,6 +2829,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 5022602860645237092, guid: c3aafa29d87154882bcb52488c6446ec,
         type: 3}
+    - target: {fileID: 2598450485826216109, guid: ac01d0f42c5e1463e943632a60d99967,
+        type: 3}
+      propertyPath: m_BehaviorType
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 2598450485826216109, guid: ac01d0f42c5e1463e943632a60d99967,
         type: 3}
       propertyPath: m_InferenceDevice
@@ -2903,11 +2893,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2710286047221272848, guid: ac01d0f42c5e1463e943632a60d99967,
-        type: 3}
-      propertyPath: envController
-      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 2710286047221272849, guid: ac01d0f42c5e1463e943632a60d99967,
         type: 3}

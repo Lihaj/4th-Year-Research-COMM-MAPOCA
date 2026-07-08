@@ -2,60 +2,45 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.MLAgents;
 using UnityEngine;
+using Lihaj.CommMAPOCA;
 
-public class PushBlockEnvController : MonoBehaviour
+/// <summary>
+/// Environment controller for the communication-enabled cooperative PushBlock
+/// (Comm-MAPOCA benchmark variant). Mirrors the stock PushBlockEnvController
+/// exactly (rewards, resets, timing), with two differences: agents are
+/// CommPushAgentCollab, and the arena's CommChannel board is cleared on reset.
+/// </summary>
+public class CommPushBlockEnvController : MonoBehaviour
 {
     [System.Serializable]
     public class PlayerInfo
     {
-        public PushAgentCollab Agent;
-        [HideInInspector]
-        public Vector3 StartingPos;
-        [HideInInspector]
-        public Quaternion StartingRot;
-        [HideInInspector]
-        public Rigidbody Rb;
+        public CommPushAgentCollab Agent;
+        [HideInInspector] public Vector3 StartingPos;
+        [HideInInspector] public Quaternion StartingRot;
+        [HideInInspector] public Rigidbody Rb;
     }
 
     [System.Serializable]
     public class BlockInfo
     {
         public Transform T;
-        [HideInInspector]
-        public Vector3 StartingPos;
-        [HideInInspector]
-        public Quaternion StartingRot;
-        [HideInInspector]
-        public Rigidbody Rb;
+        [HideInInspector] public Vector3 StartingPos;
+        [HideInInspector] public Quaternion StartingRot;
+        [HideInInspector] public Rigidbody Rb;
     }
 
-    /// <summary>
-    /// Max Academy steps before this platform resets
-    /// </summary>
     [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 25000;
 
-    /// <summary>
-    /// The area bounds.
-    /// </summary>
-    [HideInInspector]
-    public Bounds areaBounds;
-    /// <summary>
-    /// The ground. The bounds are used to spawn the elements.
-    /// </summary>
-    public GameObject ground;
+    [HideInInspector] public Bounds areaBounds;
 
+    public GameObject ground;
     public GameObject area;
 
-    Material m_GroundMaterial; //cached on Awake()
-
-    /// <summary>
-    /// We will be changing the ground material based on success/failue
-    /// </summary>
+    Material m_GroundMaterial;
     Renderer m_GroundRenderer;
 
-    //List of Agents On Platform
     public List<PlayerInfo> AgentsList = new List<PlayerInfo>();
-    //List of Blocks On Platform
     public List<BlockInfo> BlocksList = new List<BlockInfo>();
 
     public bool UseRandomAgentRotation = true;
@@ -64,30 +49,30 @@ public class PushBlockEnvController : MonoBehaviour
     public bool UseRandomBlockPosition = true;
     private PushBlockSettings m_PushBlockSettings;
 
+    [Header("Communication")]
+    [Tooltip("The Comm-MAPOCA channel for this arena. Auto-found on this GameObject if left null.")]
+    public CommChannel commChannel;
+
     private int m_NumberOfRemainingBlocks;
-
     private SimpleMultiAgentGroup m_AgentGroup;
-
     private int m_ResetTimer;
 
     void Start()
     {
+        if (commChannel == null)
+            commChannel = GetComponent<CommChannel>();
 
-        // Get the ground's bounds
         areaBounds = ground.GetComponent<Collider>().bounds;
-        // Get the ground renderer so we can change the material when a goal is scored
         m_GroundRenderer = ground.GetComponent<Renderer>();
-        // Starting material
         m_GroundMaterial = m_GroundRenderer.material;
         m_PushBlockSettings = FindFirstObjectByType<PushBlockSettings>();
-        // Initialize Blocks
+
         foreach (var item in BlocksList)
         {
             item.StartingPos = item.T.transform.position;
             item.StartingRot = item.T.transform.rotation;
             item.Rb = item.T.GetComponent<Rigidbody>();
         }
-        // Initialize TeamManager
         m_AgentGroup = new SimpleMultiAgentGroup();
         foreach (var item in AgentsList)
         {
@@ -108,13 +93,10 @@ public class PushBlockEnvController : MonoBehaviour
             ResetScene();
         }
 
-        //Hurry Up Penalty
+        // Hurry-up penalty (identical to stock)
         m_AgentGroup.AddGroupReward(-0.5f / MaxEnvironmentSteps);
     }
 
-    /// <summary>
-    /// Use the ground's bounds to pick a random spawn position.
-    /// </summary>
     public Vector3 GetRandomSpawnPos()
     {
         var foundNewSpawnLocation = false;
@@ -135,56 +117,32 @@ public class PushBlockEnvController : MonoBehaviour
         return randomSpawnPos;
     }
 
-    /// <summary>
-    /// Resets the block position and velocities.
-    /// </summary>
     void ResetBlock(BlockInfo block)
     {
-        // Get a random position for the block.
         block.T.position = GetRandomSpawnPos();
-
-        // Reset block velocity back to zero.
         block.Rb.linearVelocity = Vector3.zero;
-
-        // Reset block angularVelocity back to zero.
         block.Rb.angularVelocity = Vector3.zero;
     }
 
-    /// <summary>
-    /// Swap ground material, wait time seconds, then swap back to the regular material.
-    /// </summary>
     IEnumerator GoalScoredSwapGroundMaterial(Material mat, float time)
     {
         m_GroundRenderer.material = mat;
-        yield return new WaitForSeconds(time); // Wait for 2 sec
+        yield return new WaitForSeconds(time);
         m_GroundRenderer.material = m_GroundMaterial;
     }
 
-    /// <summary>
-    /// Called when the agent moves the block into the goal.
-    /// </summary>
+    /// <summary>Wire the blocks' GoalDetectTrigger onTriggerEnterEvent to this.</summary>
     public void ScoredAGoal(Collider col, float score)
     {
         print($"Scored {score} on {gameObject.name}");
-
-        //Decrement the counter
         m_NumberOfRemainingBlocks--;
-
-        //Are we done?
         bool done = m_NumberOfRemainingBlocks == 0;
-
-        //Disable the block
         col.gameObject.SetActive(false);
-
-        //Give Agent Rewards
         m_AgentGroup.AddGroupReward(score);
-
-        // Swap ground material for a bit to indicate we scored.
         StartCoroutine(GoalScoredSwapGroundMaterial(m_PushBlockSettings.goalScoredMaterial, 0.5f));
 
         if (done)
         {
-            //Reset assets
             m_AgentGroup.EndGroupEpisode();
             ResetScene();
         }
@@ -199,12 +157,15 @@ public class PushBlockEnvController : MonoBehaviour
     {
         m_ResetTimer = 0;
 
-        //Random platform rotation
+        // Fresh episode = fresh message board
+        if (commChannel != null)
+            commChannel.ClearBoard();
+
+        // Random platform rotation
         var rotation = Random.Range(0, 4);
         var rotationAngle = rotation * 90f;
         area.transform.Rotate(new Vector3(0f, rotationAngle, 0f));
 
-        //Reset Agents
         foreach (var item in AgentsList)
         {
             var pos = UseRandomAgentPosition ? GetRandomSpawnPos() : item.StartingPos;
@@ -215,7 +176,6 @@ public class PushBlockEnvController : MonoBehaviour
             item.Rb.angularVelocity = Vector3.zero;
         }
 
-        //Reset Blocks
         foreach (var item in BlocksList)
         {
             var pos = UseRandomBlockPosition ? GetRandomSpawnPos() : item.StartingPos;
@@ -227,7 +187,6 @@ public class PushBlockEnvController : MonoBehaviour
             item.T.gameObject.SetActive(true);
         }
 
-        //Reset counter
         m_NumberOfRemainingBlocks = BlocksList.Count;
     }
 }

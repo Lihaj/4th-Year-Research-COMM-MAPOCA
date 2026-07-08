@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5939218414981047651}
   - component: {fileID: 3384723370768900848}
+  - component: {fileID: 3029739455998440009}
   m_Layer: 0
   m_Name: Environment
   m_TagString: Untagged
@@ -69,12 +70,36 @@ MonoBehaviour:
   goalBlue: {fileID: 5787335776213670097}
   blindWalker: {fileID: 5250970449279329359}
   targetIndicator: {fileID: 5003838316321375876}
+  commChannel: {fileID: 0}
   maxEnvironmentSteps: 5000
   spawnArea: 5.5
   winReward: 4
   warmerRewardScale: 0.1
   forceTargetColor: -1
   currentTargetID: 0
+--- !u!114 &3029739455998440009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 67061852530323441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a0c5896652f66b4bb870eb5ba3ed02a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Lihaj.CommMAPOCA::Lihaj.CommMAPOCA.CommChannel
+  messageSize: 4
+  maxMessagesPerReceiver: 10
+  topology: 1
+  directedLinks:
+  - sender: {fileID: 9005899219504796668}
+    receiver: {fileID: 1375748045894249959}
+  - sender: {fileID: 5379008855078108567}
+    receiver: {fileID: 1375748045894249959}
+  allowSelfMessages: 0
+  showFlowGizmos: 1
+  gizmoAttentionCutoff: 0.05
 --- !u!1 &960269481538836078
 GameObject:
   m_ObjectHideFlags: 0
@@ -521,12 +546,11 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
+  channel: {fileID: 0}
+  readSmuggledAttention: 0
   myTargetGoal: {fileID: 5871743503928709519}
   blindWalker: {fileID: 5864608451861773993}
-  messageSize: 4
-  envController: {fileID: 3384723370768900848}
   myGoalColorID: 0
-  useHandCodedMessage: 0
 --- !u!114 &528558168326291039
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -826,8 +850,8 @@ GameObject:
   - component: {fileID: 1661225757027198072}
   - component: {fileID: 2776238982591577399}
   - component: {fileID: 4134995792336789939}
-  - component: {fileID: 5338401284816440351}
   - component: {fileID: 1375748045894249959}
+  - component: {fileID: 5338401284816440351}
   - component: {fileID: 7204125536267948949}
   - component: {fileID: 4339096828891814439}
   m_Layer: 0
@@ -957,6 +981,27 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 80
   m_CollisionDetection: 0
+--- !u!114 &1375748045894249959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5250970449279329359}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd7e21b48cf3a904a83ae52f429c1242, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BlindWalkerAgent
+  agentParameters:
+    maxStep: 0
+  hasUpgradedFromAgentParameters: 1
+  MaxStep: 0
+  channel: {fileID: 0}
+  readSmuggledAttention: 0
+  moveSpeed: 5
+  turnSpeed: 200
+  envController: {fileID: 3384723370768900848}
 --- !u!114 &5338401284816440351
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -988,26 +1033,6 @@ MonoBehaviour:
   m_UseChildActuators: 1
   m_DeterministicInference: 0
   m_ObservableAttributeHandling: 0
---- !u!114 &1375748045894249959
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5250970449279329359}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd7e21b48cf3a904a83ae52f429c1242, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BlindWalkerAgent
-  agentParameters:
-    maxStep: 0
-  hasUpgradedFromAgentParameters: 1
-  MaxStep: 0
-  moveSpeed: 5
-  turnSpeed: 200
-  envController: {fileID: 3384723370768900848}
-  messageSize: 4
 --- !u!114 &7204125536267948949
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1148,12 +1173,11 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
+  channel: {fileID: 0}
+  readSmuggledAttention: 0
   myTargetGoal: {fileID: 4562223074721662570}
   blindWalker: {fileID: 5864608451861773993}
-  messageSize: 4
-  envController: {fileID: 3384723370768900848}
   myGoalColorID: 0
-  useHandCodedMessage: 0
 --- !u!114 &5170451891128016268
 MonoBehaviour:
   m_ObjectHideFlags: 0

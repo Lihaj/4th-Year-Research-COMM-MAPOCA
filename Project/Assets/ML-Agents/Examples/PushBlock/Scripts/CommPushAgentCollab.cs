@@ -1,13 +1,26 @@
-//Put this script on your blue cube.
 using UnityEngine;
-using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
+using Lihaj.CommMAPOCA;
 
-public class PushAgentCollab : Agent
+/// <summary>
+/// Communication-enabled cooperative PushBlock agent (Comm-MAPOCA benchmark variant).
+///
+/// Identical push behavior to the stock PushAgentCollab, but built on the
+/// com.lihaj.comm-mapoca package: each agent broadcasts a learned 4-float message
+/// (first 4 continuous actions, tanh-bounded) through the arena's CommChannel and
+/// receives its teammates' messages via the auto-configured CommBuffer sensor
+/// (All-to-All topology). Continuous action slots after the message carry
+/// trainer-smuggled attention weights for the gizmo lines.
+///
+/// Behavior parameters for the comm variant: same sensors as stock, PLUS
+/// 6 continuous actions (4 message + 2 attention-gizmo spares) alongside the
+/// stock 1 discrete branch of size 7. Use a NEW behavior name (e.g.
+/// "CommPushBlock") so it never collides with the stock baseline.
+/// </summary>
+public class CommPushAgentCollab : CommAgent
 {
-
     private PushBlockSettings m_PushBlockSettings;
-    private Rigidbody m_AgentRb;  //cached on initialization
+    private Rigidbody m_AgentRb;
 
     protected override void Awake()
     {
@@ -15,15 +28,15 @@ public class PushAgentCollab : Agent
         m_PushBlockSettings = FindFirstObjectByType<PushBlockSettings>();
     }
 
-    public override void Initialize()
+    protected override void OnCommInitialize()
     {
-        // Cache the agent rb
         m_AgentRb = GetComponent<Rigidbody>();
+        // Every agent is a receiver here (All-to-All), so let each report its
+        // attention weights for the CommChannel gizmo coloring.
+        readSmuggledAttention = true;
     }
 
-    /// <summary>
-    /// Moves the agent according to the selected action.
-    /// </summary>
+    /// <summary>Moves the agent according to the selected action (stock mapping).</summary>
     public void MoveAgent(ActionSegment<int> act)
     {
         var dirToGo = Vector3.zero;
@@ -57,13 +70,10 @@ public class PushAgentCollab : Agent
             ForceMode.VelocityChange);
     }
 
-    /// <summary>
-    /// Called every step of the engine. Here the agent takes an action.
-    /// </summary>
-    public override void OnActionReceived(ActionBuffers actionBuffers)
-
+    protected override void OnCommActionReceived(ActionBuffers actionBuffers)
     {
-        // Move the agent using the action.
+        // The message (continuous [0..3]) and attention spares ([4..5]) are consumed
+        // by CommAgent; this agent only handles movement.
         MoveAgent(actionBuffers.DiscreteActions);
     }
 
