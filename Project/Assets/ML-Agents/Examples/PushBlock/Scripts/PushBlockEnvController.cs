@@ -5,10 +5,6 @@ using UnityEngine;
 
 public class PushBlockEnvController : MonoBehaviour
 {
-    [Header("Communication Routing")]
-    // Stores the raw message from every agent at time t
-    private Dictionary<PushAgentCollab, float[]> currentMessages = new Dictionary<PushAgentCollab, float[]>();
-
     [System.Serializable]
     public class PlayerInfo
     {
@@ -33,18 +29,33 @@ public class PushBlockEnvController : MonoBehaviour
         public Rigidbody Rb;
     }
 
-    [Header("Max Environment Steps")] 
-    public int MaxEnvironmentSteps = 25000;
+    /// <summary>
+    /// Max Academy steps before this platform resets
+    /// </summary>
+    [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 25000;
 
+    /// <summary>
+    /// The area bounds.
+    /// </summary>
     [HideInInspector]
     public Bounds areaBounds;
+    /// <summary>
+    /// The ground. The bounds are used to spawn the elements.
+    /// </summary>
     public GameObject ground;
+
     public GameObject area;
 
-    Material m_GroundMaterial; 
+    Material m_GroundMaterial; //cached on Awake()
+
+    /// <summary>
+    /// We will be changing the ground material based on success/failue
+    /// </summary>
     Renderer m_GroundRenderer;
 
+    //List of Agents On Platform
     public List<PlayerInfo> AgentsList = new List<PlayerInfo>();
+    //List of Blocks On Platform
     public List<BlockInfo> BlocksList = new List<BlockInfo>();
 
     public bool UseRandomAgentRotation = true;
@@ -54,65 +65,29 @@ public class PushBlockEnvController : MonoBehaviour
     private PushBlockSettings m_PushBlockSettings;
 
     private int m_NumberOfRemainingBlocks;
+
     private SimpleMultiAgentGroup m_AgentGroup;
+
     private int m_ResetTimer;
-
-    /// <summary>
-    /// Called by each agent to post their message to the board.
-    /// </summary>
-    public void RegisterAgentMessage(PushAgentCollab agent, float[] message)
-    {
-        if (!currentMessages.ContainsKey(agent))
-        {
-            currentMessages.Add(agent, message);
-        }
-        else
-        {
-            currentMessages[agent] = message;
-        }
-    }
-
-    /// <summary>
-    /// Called by each agent to grab the raw stack of all messages.
-    /// </summary>
-   public List<float[]> GetAllMessages()
-    {
-        List<float[]> activeMessages = new List<float[]>();
-        
-        // Loop through the strict, unchanging list of agents
-        foreach (var playerInfo in AgentsList) 
-        {
-            PushAgentCollab agent = playerInfo.Agent;
-            if (agent != null && agent.gameObject.activeInHierarchy)
-            {
-                if (currentMessages.ContainsKey(agent))
-                {
-                    activeMessages.Add(currentMessages[agent]);
-                }
-                else
-                {
-                    // Fallback if an agent hasn't spoken yet
-                    activeMessages.Add(new float[4]); 
-                }
-            }
-        }
-        return activeMessages;
-    }
 
     void Start()
     {
+
+        // Get the ground's bounds
         areaBounds = ground.GetComponent<Collider>().bounds;
+        // Get the ground renderer so we can change the material when a goal is scored
         m_GroundRenderer = ground.GetComponent<Renderer>();
+        // Starting material
         m_GroundMaterial = m_GroundRenderer.material;
         m_PushBlockSettings = FindFirstObjectByType<PushBlockSettings>();
-        
+        // Initialize Blocks
         foreach (var item in BlocksList)
         {
             item.StartingPos = item.T.transform.position;
             item.StartingRot = item.T.transform.rotation;
             item.Rb = item.T.GetComponent<Rigidbody>();
         }
-        
+        // Initialize TeamManager
         m_AgentGroup = new SimpleMultiAgentGroup();
         foreach (var item in AgentsList)
         {
@@ -133,9 +108,13 @@ public class PushBlockEnvController : MonoBehaviour
             ResetScene();
         }
 
+        //Hurry Up Penalty
         m_AgentGroup.AddGroupReward(-0.5f / MaxEnvironmentSteps);
     }
 
+    /// <summary>
+    /// Use the ground's bounds to pick a random spawn position.
+    /// </summary>
     public Vector3 GetRandomSpawnPos()
     {
         var foundNewSpawnLocation = false;
@@ -156,31 +135,56 @@ public class PushBlockEnvController : MonoBehaviour
         return randomSpawnPos;
     }
 
+    /// <summary>
+    /// Resets the block position and velocities.
+    /// </summary>
     void ResetBlock(BlockInfo block)
     {
+        // Get a random position for the block.
         block.T.position = GetRandomSpawnPos();
+
+        // Reset block velocity back to zero.
         block.Rb.linearVelocity = Vector3.zero;
+
+        // Reset block angularVelocity back to zero.
         block.Rb.angularVelocity = Vector3.zero;
     }
 
+    /// <summary>
+    /// Swap ground material, wait time seconds, then swap back to the regular material.
+    /// </summary>
     IEnumerator GoalScoredSwapGroundMaterial(Material mat, float time)
     {
         m_GroundRenderer.material = mat;
-        yield return new WaitForSeconds(time); 
+        yield return new WaitForSeconds(time); // Wait for 2 sec
         m_GroundRenderer.material = m_GroundMaterial;
     }
 
+    /// <summary>
+    /// Called when the agent moves the block into the goal.
+    /// </summary>
     public void ScoredAGoal(Collider col, float score)
     {
         print($"Scored {score} on {gameObject.name}");
+
+        //Decrement the counter
         m_NumberOfRemainingBlocks--;
+
+        //Are we done?
         bool done = m_NumberOfRemainingBlocks == 0;
+
+        //Disable the block
         col.gameObject.SetActive(false);
+
+        //Give Agent Rewards
         m_AgentGroup.AddGroupReward(score);
+
+        // Swap ground material for a bit to indicate we scored.
         StartCoroutine(GoalScoredSwapGroundMaterial(m_PushBlockSettings.goalScoredMaterial, 0.5f));
 
         if (done)
         {
+            //Reset assets
             m_AgentGroup.EndGroupEpisode();
             ResetScene();
         }
@@ -194,14 +198,13 @@ public class PushBlockEnvController : MonoBehaviour
     public void ResetScene()
     {
         m_ResetTimer = 0;
-        
-        // Clear old messages from the previous episode so they don't carry over!
-        currentMessages.Clear();
 
+        //Random platform rotation
         var rotation = Random.Range(0, 4);
         var rotationAngle = rotation * 90f;
         area.transform.Rotate(new Vector3(0f, rotationAngle, 0f));
 
+        //Reset Agents
         foreach (var item in AgentsList)
         {
             var pos = UseRandomAgentPosition ? GetRandomSpawnPos() : item.StartingPos;
@@ -212,6 +215,7 @@ public class PushBlockEnvController : MonoBehaviour
             item.Rb.angularVelocity = Vector3.zero;
         }
 
+        //Reset Blocks
         foreach (var item in BlocksList)
         {
             var pos = UseRandomBlockPosition ? GetRandomSpawnPos() : item.StartingPos;
@@ -222,7 +226,8 @@ public class PushBlockEnvController : MonoBehaviour
             item.Rb.angularVelocity = Vector3.zero;
             item.T.gameObject.SetActive(true);
         }
-        
+
+        //Reset counter
         m_NumberOfRemainingBlocks = BlocksList.Count;
     }
 }
