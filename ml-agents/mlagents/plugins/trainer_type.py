@@ -3,6 +3,7 @@ from typing import Dict, Tuple, Any
 
 from mlagents import plugins as mla_plugins
 from mlagents.plugins import ML_AGENTS_TRAINER_TYPE
+from mlagents.trainers.comm_mapoca.trainer import CommMAPOCATrainer
 from mlagents.trainers.poca.optimizer_torch import POCASettings
 from mlagents.trainers.poca.trainer import POCATrainer
 from mlagents.trainers.ppo.optimizer_torch import PPOSettings
@@ -24,6 +25,8 @@ def get_default_trainer_types() -> Tuple[Dict[str, Any], Dict[str, Any]]:
             PPOTrainer.get_trainer_name(): PPOTrainer,
             SACTrainer.get_trainer_name(): SACTrainer,
             POCATrainer.get_trainer_name(): POCATrainer,
+            # Comm-MAPOCA: MA-POCA + TarMAC targeted communication (in-tree trainer)
+            CommMAPOCATrainer.get_trainer_name(): CommMAPOCATrainer,
         }
     )
     # global all_trainer_settings
@@ -32,6 +35,8 @@ def get_default_trainer_types() -> Tuple[Dict[str, Any], Dict[str, Any]]:
             PPOTrainer.get_trainer_name(): PPOSettings,
             SACTrainer.get_trainer_name(): SACSettings,
             POCATrainer.get_trainer_name(): POCASettings,
+            # Comm-MAPOCA reuses POCA hyperparameters (same settings schema)
+            CommMAPOCATrainer.get_trainer_name(): POCASettings,
         }
     )
 
