@@ -134,7 +134,8 @@ public class CommPushBlockEnvController : MonoBehaviour
     /// <summary>Wire the blocks' GoalDetectTrigger onTriggerEnterEvent to this.</summary>
     public void ScoredAGoal(Collider col, float score)
     {
-        print($"Scored {score} on {gameObject.name}");
+        // Console spam once scoring becomes frequent; re-enable for debugging if needed.
+        // print($"Scored {score} on {gameObject.name}");
         m_NumberOfRemainingBlocks--;
         bool done = m_NumberOfRemainingBlocks == 0;
         col.gameObject.SetActive(false);
