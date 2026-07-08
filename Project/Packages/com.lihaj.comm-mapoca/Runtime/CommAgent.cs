@@ -49,6 +49,10 @@ namespace Lihaj.CommMAPOCA
         public sealed override void Initialize()
         {
             m_CommSensor = GetComponent<BufferSensorComponent>();
+            // Convenience: if no channel was assigned, look up the hierarchy. This lets
+            // prefab environment copies work with zero per-copy wiring.
+            if (channel == null)
+                channel = GetComponentInParent<CommChannel>();
             if (channel != null)
             {
                 // Initialize() runs before the Agent creates its sensors (Agent.cs order),
