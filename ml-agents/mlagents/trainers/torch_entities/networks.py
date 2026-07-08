@@ -1,6 +1,6 @@
 from typing import Callable, List, Dict, Tuple, Optional, Union, Any
 import abc
-import torch.nn.functional as F
+
 from mlagents.torch_utils import torch, nn
 
 from mlagents_envs.base_env import ActionSpec, ObservationSpec, ObservationType
@@ -298,12 +298,6 @@ class MultiAgentNetworkBody(torch.nn.Module):
             q_ent_size, None, attention_embeding_size
         )
 
-        # COMM-MAPOCA: dedicated encoder for TarMAC message vectors (4-float content
-        # floats, same for both sent messages from actions and received CommBuffer rows).
-        # These are added as extra RSA entities alongside the obs/obs-action entities,
-        # letting the centralized critic attend to communication alongside observations.
-        self.message_encoder = EntityEmbedding(4, None, attention_embeding_size)
-
         self.self_attn = ResidualSelfAttention(attention_embeding_size)
 
         self.linear_encoder = LinearEncoder(
@@ -369,8 +363,6 @@ class MultiAgentNetworkBody(torch.nn.Module):
         actions: List[AgentAction],
         memories: Optional[torch.Tensor] = None,
         sequence_length: int = 1,
-        messages: Optional[torch.Tensor] = None,
-        msg_mask: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Returns sampled actions.
@@ -382,10 +374,6 @@ class MultiAgentNetworkBody(torch.nn.Module):
         :param actions: After concatenation with obs, these are processed with obs_action_encoder.
         :param memories: If using memory, a Tensor of initial memories.
         :param sequence_length: If using memory, the sequence length.
-        :param messages: COMM-MAPOCA: optional tensor of shape (batch, N, 4) containing
-            message content vectors to add as extra RSA entities alongside obs entities.
-        :param msg_mask: COMM-MAPOCA: optional bool tensor of shape (batch, N) where True
-            means this message slot is padding and should be masked out of attention.
         """
         self_attn_masks = []
         self_attn_inputs = []
@@ -415,36 +403,18 @@ class MultiAgentNetworkBody(torch.nn.Module):
             self_attn_masks.append(obs_only_attn_mask)
             self_attn_inputs.append(self.obs_encoder(None, g_inp))
 
-        # COMM-MAPOCA: count real agents from obs/obs_only masks BEFORE appending
-        # message entities, so message slots don't inflate the agent-count scalar.
+        encoded_entity = torch.cat(self_attn_inputs, dim=1)
+        encoded_state = self.self_attn(encoded_entity, self_attn_masks)
+
         flipped_masks = 1 - torch.cat(self_attn_masks, dim=1)
         num_agents = torch.sum(flipped_masks, dim=1, keepdim=True)
         if torch.max(num_agents).item() > self._current_max_agents:
             self._current_max_agents = torch.nn.Parameter(
                 torch.as_tensor(torch.max(num_agents).item()), requires_grad=False
             )
+
         # num_agents will be -1 for a single agent and +1 when the current maximum is reached
         num_agents = num_agents * 2.0 / self._current_max_agents - 1
-
-        # COMM-MAPOCA: add message entities into the RSA entity set AFTER the
-        # agent count is locked. Each message (4 content floats) is projected to
-        # attention_embedding_size via message_encoder, then attends/is-attended-to
-        # by the obs and obs-action entities, giving the critic visibility into what
-        # was communicated this step.
-        if messages is not None:
-            msg_encoded = self.message_encoder(None, messages)  # (batch, N, emb_size)
-            self_attn_inputs.append(msg_encoded)
-            if msg_mask is not None:
-                self_attn_masks.append(msg_mask.float())
-            else:
-                self_attn_masks.append(
-                    torch.zeros(
-                        messages.shape[0], messages.shape[1], device=messages.device
-                    )
-                )
-
-        encoded_entity = torch.cat(self_attn_inputs, dim=1)
-        encoded_state = self.self_attn(encoded_entity, self_attn_masks)
 
         encoding = self.linear_encoder(encoded_state)
         if self.use_lstm:
@@ -598,54 +568,6 @@ class Actor(abc.ABC):
         pass
 
 
-class TargetedCommunicationBlock(nn.Module):
-    def __init__(self, hidden_dim, msg_size=4, signature_dim=16):
-        super(TargetedCommunicationBlock, self).__init__()
-        self.signature_dim = signature_dim
-
-        self.query_layer = nn.Linear(hidden_dim, signature_dim)
-        self.key_layer = nn.Linear(msg_size, signature_dim)
-        self.value_layer = nn.Linear(msg_size, hidden_dim)
-
-    def forward(self, agent_hidden_state, raw_messages_buffer):
-        # COMM-MAPOCA: the last column of raw_messages_buffer is an explicit presence
-        # flag (1.0 = real, already-broadcast message; 0.0 = Unity's structural padding
-        # OR a registered agent that simply hasn't spoken yet this episode) set on the
-        # C# side (OracleEnvController.GetAllMessages). The remaining columns are the
-        # actual message content. Slicing them apart keeps the presence flag out of the
-        # Q/K/V math while still using it for masking.
-        content = raw_messages_buffer[..., :-1]
-        presence = raw_messages_buffer[..., -1]
-
-        Q = self.query_layer(agent_hidden_state).unsqueeze(1)
-        K = self.key_layer(content)
-        V = self.value_layer(content)
-
-        K_T = K.transpose(1, 2)
-        scaled_scores = torch.bmm(Q, K_T) / (self.signature_dim ** 0.5)
-
-        # --- COMM-MAPOCA MASKING FIX ---
-        # Mask using the explicit presence flag instead of inferring "ghost slot" from
-        # message magnitude -- a real-but-not-yet-spoken agent is otherwise also all
-        # zeros and would be wrongly treated as real content for one step per episode.
-        is_padded = (presence < 0.5).unsqueeze(1)
-
-        # Fill the padded slots with -1e9 so Softmax evaluates them to exactly 0.0
-        scaled_scores = scaled_scores.masked_fill(is_padded, -1e9)
-        # -------------------------------
-
-        attention_weights = F.softmax(scaled_scores, dim=-1)
-
-        # Safety catch: ONNX Opset 9 compatible NaN replacement
-        attention_weights = torch.where(
-            torch.isnan(attention_weights),
-            torch.zeros_like(attention_weights),
-            attention_weights
-        )
-
-        aggregated_message = torch.bmm(attention_weights, V).squeeze(1)
-        return aggregated_message, attention_weights
-
 class SimpleActor(nn.Module, Actor):
     MODEL_EXPORT_VERSION = 3  # Corresponds to ModelApiVersion.MLAgents2_0
 
@@ -680,46 +602,22 @@ class SimpleActor(nn.Module, Actor):
             ),
             requires_grad=False,
         )
-
-        # --- COMM-MAPOCA MODIFICATION 1: Isolate the CommBuffer ---
-        self.comm_idx = -1
-        normal_specs = []
-        for i, spec in enumerate(observation_specs):
-            if spec.name == "CommBuffer":
-                self.comm_idx = i
-            else:
-                normal_specs.append(spec)
-
-        # Build the standard network body WITHOUT the CommBuffer
-        self.network_body = NetworkBody(normal_specs, network_settings)
-        # ----------------------------------------------------------
-
+        self.network_body = NetworkBody(observation_specs, network_settings)
         if network_settings.memory is not None:
             self.encoding_size = network_settings.memory.memory_size // 2
         else:
             self.encoding_size = network_settings.hidden_units
-
         self.memory_size_vector = torch.nn.Parameter(
             torch.Tensor([int(self.network_body.memory_size)]), requires_grad=False
         )
 
-        # --- COMM-MAPOCA MODIFICATION 2: Initialize TarMAC ---
-        self.tarmac_block = TargetedCommunicationBlock(
-            hidden_dim=self.encoding_size,
-            msg_size=4,
-            signature_dim=16
-        )
-
-        # Because we concatenate the Brain Encoding + Aggregated Message,
-        # the Action Model needs to accept exactly double the input size.
         self.action_model = ActionModel(
-            self.encoding_size * 2,
+            self.encoding_size,
             action_spec,
             conditional_sigma=conditional_sigma,
             tanh_squash=tanh_squash,
             deterministic=network_settings.deterministic,
         )
-        # -----------------------------------------------------
 
     @property
     def memory_size(self) -> int:
@@ -727,14 +625,6 @@ class SimpleActor(nn.Module, Actor):
 
     def update_normalization(self, buffer: AgentBuffer) -> None:
         self.network_body.update_normalization(buffer)
-
-    # Helper function to route data
-    def _split_inputs(self, inputs: List[torch.Tensor]) -> Tuple[List[torch.Tensor], Optional[torch.Tensor]]:
-        if self.comm_idx == -1:
-            return inputs, None
-        normal_inputs = [inp for i, inp in enumerate(inputs) if i != self.comm_idx]
-        comm_buffer = inputs[self.comm_idx]
-        return normal_inputs, comm_buffer
 
     def get_action_and_stats(
         self,
@@ -744,49 +634,18 @@ class SimpleActor(nn.Module, Actor):
         sequence_length: int = 1,
     ) -> Tuple[AgentAction, Dict[str, Any], torch.Tensor]:
 
-        normal_inputs, comm_buffer = self._split_inputs(inputs)
-
-        # 1. Get the agent's internal state (Query source)
         encoding, memories = self.network_body(
-            normal_inputs, memories=memories, sequence_length=sequence_length
+            inputs, memories=memories, sequence_length=sequence_length
         )
-
-        # 2. Apply TarMAC Attention
-        if comm_buffer is not None:
-            # FIX 1: Change the '_' to 'attention_weights' to save the data!
-            aggregated_msg, attention_weights = self.tarmac_block(encoding, comm_buffer)
-        else:
-            aggregated_msg = torch.zeros_like(encoding)
-            # FIX 2: Create a dummy tensor of zeros just in case the buffer is empty
-            attention_weights = torch.zeros(encoding.shape[0], 1, 3, device=encoding.device)
-
-        # 3. Concatenate and feed to Action Heads
-        final_encoding = torch.cat([encoding, aggregated_msg], dim=-1)
-        action, log_probs, entropies = self.action_model(final_encoding, masks)
-
+        action, log_probs, entropies = self.action_model(encoding, masks)
         run_out = {}
+        # This is the clipped action which is not saved to the buffer
+        # but is exclusively sent to the environment.
         run_out["env_action"] = action.to_action_tuple(
             clip=self.action_model.clip_action
         )
         run_out["log_probs"] = log_probs
         run_out["entropy"] = entropies
-
-        # --- VISUALIZATION HIJACK (SAFE-COPY VERSION) ---
-        # Smuggle the attention weights to Unity in continuous slots [4:] so the C# gizmos
-        # can draw them. CRITICAL: never write into this numpy array in place.
-        # to_action_tuple(clip=False) returns a numpy VIEW that shares memory with
-        # action.continuous_tensor (the tensor stored in the training buffer and used for
-        # log-probs), so an in-place write would silently corrupt the on-policy training
-        # data whenever clip is off (tanh_squash=True). We build a fresh copy for Unity
-        # and re-attach it; the stored action tensor keeps the true sampled values.
-        if run_out["env_action"].continuous is not None and comm_buffer is not None:
-            available_slots = run_out["env_action"].continuous.shape[1] - 4
-            if available_slots > 0:
-                numpy_weights = attention_weights.squeeze(1).detach().cpu().numpy()
-                safe_continuous = run_out["env_action"].continuous.copy()  # never a shared view
-                safe_continuous[:, 4:4 + available_slots] = numpy_weights[:, :available_slots]
-                run_out["env_action"].add_continuous(safe_continuous)
-        # --------------------------------------------------
 
         return action, run_out, memories
 
@@ -798,21 +657,11 @@ class SimpleActor(nn.Module, Actor):
         memories: Optional[torch.Tensor] = None,
         sequence_length: int = 1,
     ) -> Dict[str, Any]:
-
-        normal_inputs, comm_buffer = self._split_inputs(inputs)
-
         encoding, actor_mem_outs = self.network_body(
-            normal_inputs, memories=memories, sequence_length=sequence_length
+            inputs, memories=memories, sequence_length=sequence_length
         )
 
-        if comm_buffer is not None:
-            aggregated_msg, _ = self.tarmac_block(encoding, comm_buffer)
-        else:
-            aggregated_msg = torch.zeros_like(encoding)
-
-        final_encoding = torch.cat([encoding, aggregated_msg], dim=-1)
-        log_probs, entropies = self.action_model.evaluate(final_encoding, masks, actions)
-
+        log_probs, entropies = self.action_model.evaluate(encoding, masks, actions)
         run_out = {}
         run_out["log_probs"] = log_probs
         run_out["entropy"] = entropies
@@ -824,19 +673,15 @@ class SimpleActor(nn.Module, Actor):
         masks: Optional[torch.Tensor] = None,
         memories: Optional[torch.Tensor] = None,
     ) -> Tuple[Union[int, torch.Tensor], ...]:
+        """
+        Note: This forward() method is required for exporting to ONNX. Don't modify the inputs and outputs.
 
-        normal_inputs, comm_buffer = self._split_inputs(inputs)
-
+        At this moment, torch.onnx.export() doesn't accept None as tensor to be exported,
+        so the size of return tuple varies with action spec.
+        """
         encoding, memories_out = self.network_body(
-            normal_inputs, memories=memories, sequence_length=1
+            inputs, memories=memories, sequence_length=1
         )
-
-        if comm_buffer is not None:
-            aggregated_msg, _ = self.tarmac_block(encoding, comm_buffer)
-        else:
-            aggregated_msg = torch.zeros_like(encoding)
-
-        final_encoding = torch.cat([encoding, aggregated_msg], dim=-1)
 
         (
             cont_action_out,
@@ -844,8 +689,7 @@ class SimpleActor(nn.Module, Actor):
             action_out_deprecated,
             deterministic_cont_action_out,
             deterministic_disc_action_out,
-        ) = self.action_model.get_action_out(final_encoding, masks)
-
+        ) = self.action_model.get_action_out(encoding, masks)
         export_out = [self.version_number, self.memory_size_vector]
         if self.action_spec.continuous_size > 0:
             export_out += [
@@ -862,6 +706,7 @@ class SimpleActor(nn.Module, Actor):
         if self.network_body.memory_size > 0:
             export_out += [memories_out]
         return tuple(export_out)
+
 
 class SharedActorCritic(SimpleActor, Critic):
     def __init__(
@@ -890,12 +735,11 @@ class SharedActorCritic(SimpleActor, Critic):
         memories: Optional[torch.Tensor] = None,
         sequence_length: int = 1,
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
-        normal_inputs, _ = self._split_inputs(inputs)
-
         encoding, memories_out = self.network_body(
-            normal_inputs, memories=memories, sequence_length=sequence_length
+            inputs, memories=memories, sequence_length=sequence_length
         )
         return self.value_heads(encoding), memories_out
+
 
 class GlobalSteps(nn.Module):
     def __init__(self):
@@ -914,6 +758,7 @@ class GlobalSteps(nn.Module):
 
     def increment(self, value):
         self.__global_step += value
+
 
 class LearningRate(nn.Module):
     def __init__(self, lr):

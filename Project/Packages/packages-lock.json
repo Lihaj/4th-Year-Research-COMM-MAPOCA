@@ -24,6 +24,14 @@
       },
       "hash": "11836003a5e2ffcb7715ecec7e1fbb9d9cdb5bb8"
     },
+    "com.lihaj.comm-mapoca": {
+      "version": "file:com.lihaj.comm-mapoca",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.ml-agents": "4.0.0"
+      }
+    },
     "com.unity.ai.inference": {
       "version": "2.5.0",
       "depth": 1,

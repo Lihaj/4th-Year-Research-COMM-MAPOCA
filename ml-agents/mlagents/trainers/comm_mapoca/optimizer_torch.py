@@ -27,7 +27,10 @@ from mlagents.trainers.settings import (
     OnPolicyHyperparamSettings,
     ScheduleType,
 )
-from mlagents.trainers.torch_entities.networks import Critic, MultiAgentNetworkBody
+from mlagents.trainers.torch_entities.networks import Critic
+from mlagents.trainers.comm_mapoca.comm_networks import (
+    CommMultiAgentNetworkBody as MultiAgentNetworkBody,
+)
 from mlagents.trainers.torch_entities.decoders import ValueHeads
 from mlagents.trainers.torch_entities.agent_action import AgentAction
 from mlagents.trainers.torch_entities.action_log_probs import ActionLogProbs
@@ -50,7 +53,7 @@ class POCASettings(OnPolicyHyperparamSettings):
     epsilon_schedule: ScheduleType = ScheduleType.LINEAR
 
 
-class TorchPOCAOptimizer(TorchOptimizer):
+class TorchCommMAPOCAOptimizer(TorchOptimizer):
     class POCAValueNetwork(torch.nn.Module, Critic):
         """
         The POCAValueNetwork uses the MultiAgentNetworkBody to compute the value
@@ -90,6 +93,8 @@ class TorchPOCAOptimizer(TorchOptimizer):
             obs_with_actions: Tuple[List[List[torch.Tensor]], List[AgentAction]],
             memories: Optional[torch.Tensor] = None,
             sequence_length: int = 1,
+            messages: Optional[torch.Tensor] = None,
+            msg_mask: Optional[torch.Tensor] = None,
         ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
             """
             The POCA baseline marginalizes the action of the agent associated with self_obs.
@@ -99,6 +104,8 @@ class TorchPOCAOptimizer(TorchOptimizer):
             :param obs_with_actions: Tuple of observations and actions for all groupmates.
             :param memories: If using memory, a Tensor of initial memories.
             :param sequence_length: If using memory, the sequence length.
+            :param messages: COMM-MAPOCA message entities (batch, N, 4).
+            :param msg_mask: COMM-MAPOCA mask for padded message slots (batch, N), True=padded.
 
             :return: A Tuple of Dict of reward stream to tensor and critic memories.
             """
@@ -109,6 +116,8 @@ class TorchPOCAOptimizer(TorchOptimizer):
                 actions=actions,
                 memories=memories,
                 sequence_length=sequence_length,
+                messages=messages,
+                msg_mask=msg_mask,
             )
 
             value_outputs, critic_mem_out = self.forward(
@@ -121,6 +130,8 @@ class TorchPOCAOptimizer(TorchOptimizer):
             obs: List[List[torch.Tensor]],
             memories: Optional[torch.Tensor] = None,
             sequence_length: int = 1,
+            messages: Optional[torch.Tensor] = None,
+            msg_mask: Optional[torch.Tensor] = None,
         ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
             """
             A centralized value function. It calls the forward pass of MultiAgentNetworkBody
@@ -128,6 +139,8 @@ class TorchPOCAOptimizer(TorchOptimizer):
             :param obs: List of observations for all agents in group
             :param memories: If using memory, a Tensor of initial memories.
             :param sequence_length: If using memory, the sequence length.
+            :param messages: COMM-MAPOCA message entities (batch, N, 4).
+            :param msg_mask: COMM-MAPOCA mask for padded message slots (batch, N), True=padded.
             :return: A Tuple of Dict of reward stream to tensor and critic memories.
             """
             encoding, memories = self.network_body(
@@ -136,6 +149,8 @@ class TorchPOCAOptimizer(TorchOptimizer):
                 actions=[],
                 memories=memories,
                 sequence_length=sequence_length,
+                messages=messages,
+                msg_mask=msg_mask,
             )
 
             value_outputs, critic_mem_out = self.forward(
@@ -166,9 +181,23 @@ class TorchPOCAOptimizer(TorchOptimizer):
         reward_signal_configs = trainer_settings.reward_signals
         reward_signal_names = [key.value for key, _ in reward_signal_configs.items()]
 
-        self._critic = TorchPOCAOptimizer.POCAValueNetwork(
+        # COMM-MAPOCA: strip "CommBuffer" out of the specs the critic is built from.
+        # Without this, the critic's generic ObservationEncoder would pool a Walker's
+        # raw CommBuffer through its own separate, uncoordinated attention block --
+        # an accidental, asymmetric leak (only agents with a CommBuffer sensor would
+        # be affected) rather than the deliberate message channel we're about to add.
+        # Mirrors SimpleActor's comm_idx/_split_inputs in networks.py.
+        self.comm_idx = -1
+        normal_specs = []
+        for i, spec in enumerate(policy.behavior_spec.observation_specs):
+            if spec.name == "CommBuffer":
+                self.comm_idx = i
+            else:
+                normal_specs.append(spec)
+
+        self._critic = TorchCommMAPOCAOptimizer.POCAValueNetwork(
             reward_signal_names,
-            policy.behavior_spec.observation_specs,
+            normal_specs,
             network_settings=trainer_settings.network_settings,
             action_spec=policy.behavior_spec.action_spec,
         )
@@ -236,6 +265,86 @@ class TorchPOCAOptimizer(TorchOptimizer):
     @property
     def critic(self):
         return self._critic
+
+    def _strip_comm(self, obs: List[torch.Tensor]) -> List[torch.Tensor]:
+        """
+        Removes the "CommBuffer" entry (if any) from a single agent's list of
+        per-sensor observation tensors, so the critic never sees it through this
+        generic pathway -- see the comm_idx note in __init__.
+        """
+        if self.comm_idx == -1:
+            return obs
+        return [o for i, o in enumerate(obs) if i != self.comm_idx]
+
+    # COMM-MAPOCA MASTER SWITCH for the critic message channel.
+    #   False -> value/baseline networks are STOCK MA-POCA (no messages; known-stable).
+    #   True  -> value/baseline networks also attend over the deliberate message channel.
+    # CRITICAL CONTRACT: this gate is honored by BOTH the training update() AND the
+    # TD(lambda)/GAE target-generation path (get_trajectory_and_baseline_value_estimates).
+    # It must NEVER gate only one of them: if the targets/old-values are produced by a
+    # message-free critic while update() optimizes a message-fed critic (or vice versa),
+    # the value net chases targets from a *different function* and diverges with the
+    # classic stable-then-explode Value/Baseline Loss signature.
+    # NOTE: only flip to True in EMERGENT-message mode (useHandCodedMessage OFF in Unity):
+    # the sent-message tensors are read from the policy's message head, which the
+    # environment ignores while messages are hand-coded (they'd be uncorrelated noise).
+    # 2026-07-06: flipped to True for Run B (full Comm-MAPOCA) after Run A (sanity mode,
+    # hand-coded messages, critic messages OFF) validated the stabilized base: reward
+    # 0 -> +3.4, episode length 700 -> ~100, value/baseline losses flat at ~0.05-0.1.
+    USE_CRITIC_MESSAGES = True
+
+    MSG_SIZE = 4  # first N continuous action floats = the broadcast message
+
+    def _build_critic_messages(
+        self,
+        self_actions: AgentAction,
+        groupmate_actions: List[AgentAction],
+        comm_buf: Optional[torch.Tensor],
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Builds the COMM-MAPOCA message tensors for the critic. This is the ONLY place
+        these tensors may be constructed -- both update() and the target-generation
+        pass call this helper so the critic sees an IDENTICAL message channel in both
+        (see the USE_CRITIC_MESSAGES contract above).
+
+        Value network: sent messages of EVERY agent (self + groupmates), tanh-bounded
+        to [-1, 1] to match what the C# side actually broadcasts.
+        Baseline for target agent j: j's RECEIVED CommBuffer rows (presence-masked;
+        j's own sent message m_j is excluded on the C# side, since it is one of the
+        quantities the counterfactual marginalizes out) + groupmates' sent messages.
+        """
+        msg = self.MSG_SIZE
+        self_msg = torch.tanh(self_actions.continuous_tensor[:, :msg])   # (T, 4)
+        gm_msgs = [
+            torch.tanh(ga.continuous_tensor[:, :msg]) for ga in groupmate_actions
+        ]
+
+        value_messages = torch.stack([self_msg] + gm_msgs, dim=1)        # (T, 3, 4)
+        value_msg_mask = torch.zeros(
+            value_messages.shape[0], value_messages.shape[1],
+            device=value_messages.device,
+        )  # 0 = real entity
+
+        if comm_buf is not None:
+            j_comm_content = comm_buf[:, :, :msg]                        # (T, 10, 4)
+            j_comm_mask = comm_buf[:, :, msg] < 0.5                      # True = pad
+        else:
+            # Behavior has no CommBuffer sensor: zero received-message rows.
+            j_comm_content = value_messages[:, :0, :]
+            j_comm_mask = torch.zeros(
+                value_messages.shape[0], 0,
+                device=value_messages.device, dtype=torch.bool,
+            )
+
+        gm_msgs_stacked = torch.stack(gm_msgs, dim=1)                    # (T, 2, 4)
+        gm_msgs_mask = torch.zeros(
+            gm_msgs_stacked.shape[0], gm_msgs_stacked.shape[1],
+            device=gm_msgs_stacked.device, dtype=torch.bool,
+        )  # groupmates always real at training time
+
+        baseline_messages = torch.cat([j_comm_content, gm_msgs_stacked], dim=1)
+        baseline_msg_mask = torch.cat([j_comm_mask, gm_msgs_mask], dim=1)
+        return value_messages, value_msg_mask, baseline_messages, baseline_msg_mask
 
     @timed
     def update(self, batch: AgentBuffer, num_sequences: int) -> Dict[str, float]:
@@ -312,18 +421,41 @@ class TorchPOCAOptimizer(TorchOptimizer):
         log_probs = run_out["log_probs"]
         entropy = run_out["entropy"]
 
-        all_obs = [current_obs] + groupmate_obs
+        # COMM-MAPOCA: the actor call above needs the full current_obs/groupmate_obs
+        # (it does its own CommBuffer extraction internally). The critic uses the
+        # CommBuffer-stripped obs versions for the obs/obs_action entity streams,
+        # and the deliberate message channel supplies communication info separately.
+        critic_obs = self._strip_comm(current_obs)
+        critic_groupmate_obs = [self._strip_comm(o) for o in groupmate_obs]
+
+        # -- Build the COMM-MAPOCA message tensors for the critic --
+        # Single shared construction path (see _build_critic_messages and the
+        # USE_CRITIC_MESSAGES contract on the class): update() and the target-generation
+        # pass MUST feed the critic identical message channels or the value net diverges.
+        j_comm_buf = current_obs[self.comm_idx] if self.comm_idx != -1 else None
+        (
+            value_messages,
+            value_msg_mask,
+            baseline_messages,
+            baseline_msg_mask,
+        ) = self._build_critic_messages(actions, groupmate_actions, j_comm_buf)
+
+        all_obs = [critic_obs] + critic_groupmate_obs
         values, _ = self.critic.critic_pass(
             all_obs,
             memories=value_memories,
             sequence_length=self.policy.sequence_length,
+            messages=value_messages if self.USE_CRITIC_MESSAGES else None,
+            msg_mask=value_msg_mask if self.USE_CRITIC_MESSAGES else None,
         )
-        groupmate_obs_and_actions = (groupmate_obs, groupmate_actions)
+        groupmate_obs_and_actions = (critic_groupmate_obs, groupmate_actions)
         baselines, _ = self.critic.baseline(
-            current_obs,
+            critic_obs,
             groupmate_obs_and_actions,
             memories=baseline_memories,
             sequence_length=self.policy.sequence_length,
+            messages=baseline_messages if self.USE_CRITIC_MESSAGES else None,
+            msg_mask=baseline_msg_mask if self.USE_CRITIC_MESSAGES else None,
         )
         old_log_probs = ActionLogProbs.from_buffer(batch).flatten()
         log_probs = log_probs.flatten()
@@ -353,6 +485,17 @@ class TorchPOCAOptimizer(TorchOptimizer):
         ModelUtils.update_learning_rate(self.optimizer, decay_lr)
         self.optimizer.zero_grad()
         loss.backward()
+
+        # COMM-MAPOCA: clip the global gradient norm before stepping. Base ml-agents has NO
+        # gradient clipping, and our extended critic (message channel + attention over extra
+        # entities) occasionally produces a huge gradient that blows the value/baseline
+        # networks up to the millions -- the catastrophic divergence seen after a few M steps
+        # (learns fine, then suddenly explodes). Clipping caps the update step size and is the
+        # standard fix for exactly this failure; it's inert during normal training.
+        torch.nn.utils.clip_grad_norm_(
+            [p for group in self.optimizer.param_groups for p in group["params"]],
+            max_norm=0.5,
+        )
 
         self.optimizer.step()
         update_stats = {
@@ -602,6 +745,26 @@ class TorchPOCAOptimizer(TorchOptimizer):
             for _list_obs in next_groupmate_obs
         ]
 
+        # COMM-MAPOCA: build the critic message channel BEFORE stripping the CommBuffer,
+        # using the exact same helper as update(). The TD(lambda)/GAE targets and the
+        # old-value trust-region anchors produced here MUST come from the same function
+        # (same inputs) that update() optimizes -- see USE_CRITIC_MESSAGES contract.
+        self_actions = AgentAction.from_buffer(batch)
+        j_comm_buf = current_obs[self.comm_idx] if self.comm_idx != -1 else None
+        (
+            value_messages,
+            value_msg_mask,
+            baseline_messages,
+            baseline_msg_mask,
+        ) = self._build_critic_messages(self_actions, groupmate_actions, j_comm_buf)
+
+        # COMM-MAPOCA: this function only ever feeds the critic (no actor calls here),
+        # so it's safe to strip CommBuffer out of all four obs lists in place.
+        current_obs = self._strip_comm(current_obs)
+        groupmate_obs = [self._strip_comm(o) for o in groupmate_obs]
+        next_obs = self._strip_comm(next_obs)
+        next_groupmate_obs = [self._strip_comm(o) for o in next_groupmate_obs]
+
         if agent_id in self.value_memory_dict:
             # The agent_id should always be in both since they are added together
             _init_value_mem = self.value_memory_dict[agent_id]
@@ -627,6 +790,16 @@ class TorchPOCAOptimizer(TorchOptimizer):
         all_next_baseline_mem: Optional[AgentBufferField] = None
         with torch.no_grad():
             if self.policy.use_recurrent:
+                # COMM-MAPOCA: the recurrent sequence-evaluation path has NOT been
+                # threaded with the message channel. Failing loudly here is deliberate:
+                # a silent message-free pass would regenerate the exact train/target
+                # inconsistency this wiring exists to prevent.
+                if self.USE_CRITIC_MESSAGES:
+                    raise NotImplementedError(
+                        "COMM-MAPOCA: USE_CRITIC_MESSAGES=True is not supported with "
+                        "recurrent networks (LSTM/memory). Disable memory in the "
+                        "trainer config or set USE_CRITIC_MESSAGES=False."
+                    )
                 (
                     value_estimates,
                     baseline_estimates,
@@ -643,7 +816,11 @@ class TorchPOCAOptimizer(TorchOptimizer):
                 )
             else:
                 value_estimates, next_value_mem = self.critic.critic_pass(
-                    all_obs, _init_value_mem, sequence_length=batch.num_experiences
+                    all_obs,
+                    _init_value_mem,
+                    sequence_length=batch.num_experiences,
+                    messages=value_messages if self.USE_CRITIC_MESSAGES else None,
+                    msg_mask=value_msg_mask if self.USE_CRITIC_MESSAGES else None,
                 )
                 groupmate_obs_and_actions = (groupmate_obs, groupmate_actions)
                 baseline_estimates, next_baseline_mem = self.critic.baseline(
@@ -651,6 +828,8 @@ class TorchPOCAOptimizer(TorchOptimizer):
                     groupmate_obs_and_actions,
                     _init_baseline_mem,
                     sequence_length=batch.num_experiences,
+                    messages=baseline_messages if self.USE_CRITIC_MESSAGES else None,
+                    msg_mask=baseline_msg_mask if self.USE_CRITIC_MESSAGES else None,
                 )
         # Store the memory for the next trajectory
         self.value_memory_dict[agent_id] = next_value_mem
@@ -662,8 +841,17 @@ class TorchPOCAOptimizer(TorchOptimizer):
             else [next_obs]
         )
 
+        # COMM-MAPOCA bootstrap note: the next step's SENT messages do not exist yet
+        # (this trajectory holds no next actions), so we approximate them with the LAST
+        # step's messages. Messages evolve slowly (Oracle messages are ~constant within
+        # an episode), and when the episode truly ended the `done` handling below zeroes
+        # this bootstrap anyway -- so the approximation only touches truncated tails.
         next_value_estimates, _ = self.critic.critic_pass(
-            all_next_obs, next_value_mem, sequence_length=1
+            all_next_obs,
+            next_value_mem,
+            sequence_length=1,
+            messages=value_messages[-1:] if self.USE_CRITIC_MESSAGES else None,
+            msg_mask=value_msg_mask[-1:] if self.USE_CRITIC_MESSAGES else None,
         )
 
         for name, estimate in baseline_estimates.items():

@@ -5,7 +5,9 @@ behaviors:
   # within the same group (see Learning-Environment-Design-Agents.md, "Cooperative
   # Behaviors Notes and Best Practices").
   CommMAPOCABrain:
-    trainer_type: poca
+    # Comm-MAPOCA trainer (MA-POCA + TarMAC targeted communication). Stock MA-POCA
+    # remains available as trainer_type: poca for baselines.
+    trainer_type: comm_mapoca
     hyperparameters:
       batch_size: 1024
       buffer_size: 10240
