@@ -24,6 +24,8 @@ behaviors:
         gamma: 0.99
         strength: 1.0
     keep_checkpoints: 5
-    max_steps: 15000000
+    # 15M -> 30M (2026-07-09): reward was still climbing linearly at the 15M cutoff
+    # (constant LR schedule, so resuming is seamless with no warm-restart effect)
+    max_steps: 30000000
     time_horizon: 64
     summary_freq: 60000
