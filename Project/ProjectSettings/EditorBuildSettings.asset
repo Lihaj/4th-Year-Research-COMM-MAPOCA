@@ -14,9 +14,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/ML-Agents/Examples/Blind Walker/Scenes/New Scene.unity
     guid: f229f54584e2702418ab1bb510275184
-  - enabled: 1
+  - enabled: 0
     path: Assets/ML-Agents/Examples/PushBlock/Scenes/PushBlockCollabCommPO.unity
     guid: c5e78817c4c23694aa5b3ea3ffbc437b
+  - enabled: 1
+    path: Assets/ML-Agents/Examples/PushBlock/Scenes/PushBlockCollabBaselinePO.unity
+    guid: 12d69c30e3324dc4f9809c127dc59d0b
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f,
       type: 2}
