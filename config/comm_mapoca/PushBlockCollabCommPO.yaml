@@ -1,0 +1,31 @@
+behaviors:
+  # PARTIAL-OBSERVABILITY (7x7 grid) Comm-MAPOCA Push Block - the headline
+  # experiment. Identical to PushBlockCollabComm.yaml except the behavior name:
+  # agents carry a 7x7 GridSensor instead of 20x20, so each agent only sees its
+  # local surroundings and teammates' messages are the only source of remote
+  # information. Distinct behavior name keeps checkpoints/results separate from
+  # the full-observability variant (different observation shape).
+  CommPushBlockPO:
+    trainer_type: comm_mapoca
+    hyperparameters:
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 0.0003
+      beta: 0.01
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: constant
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    keep_checkpoints: 5
+    max_steps: 30000000
+    time_horizon: 64
+    summary_freq: 60000
