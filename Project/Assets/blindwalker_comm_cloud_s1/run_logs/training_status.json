@@ -1,0 +1,65 @@
+{
+    "CommMAPOCABrain": {
+        "checkpoints": [
+            {
+                "steps": 28499960,
+                "file_path": "results/blindwalker_comm_cloud_s1/CommMAPOCABrain/CommMAPOCABrain-28499960.onnx",
+                "reward": 0.0,
+                "creation_time": 1783690394.4759035,
+                "auxillary_file_paths": [
+                    "results/blindwalker_comm_cloud_s1/CommMAPOCABrain/CommMAPOCABrain-28499960.pt"
+                ]
+            },
+            {
+                "steps": 28999998,
+                "file_path": "results/blindwalker_comm_cloud_s1/CommMAPOCABrain/CommMAPOCABrain-28999998.onnx",
+                "reward": 0.0,
+                "creation_time": 1783690839.8006961,
+                "auxillary_file_paths": [
+                    "results/blindwalker_comm_cloud_s1/CommMAPOCABrain/CommMAPOCABrain-28999998.pt"
+                ]
+            },
+            {
+                "steps": 29499999,
+                "file_path": "results/blindwalker_comm_cloud_s1/CommMAPOCABrain/CommMAPOCABrain-29499999.onnx",
+                "reward": 0.0,
+                "creation_time": 1783691300.931062,
+                "auxillary_file_paths": [
+                    "results/blindwalker_comm_cloud_s1/CommMAPOCABrain/CommMAPOCABrain-29499999.pt"
+                ]
+            },
+            {
+                "steps": 29999994,
+                "file_path": "results/blindwalker_comm_cloud_s1/CommMAPOCABrain/CommMAPOCABrain-29999994.onnx",
+                "reward": 0.0,
+                "creation_time": 1783691766.1899848,
+                "auxillary_file_paths": [
+                    "results/blindwalker_comm_cloud_s1/CommMAPOCABrain/CommMAPOCABrain-29999994.pt"
+                ]
+            },
+            {
+                "steps": 30000108,
+                "file_path": "results/blindwalker_comm_cloud_s1/CommMAPOCABrain/CommMAPOCABrain-30000108.onnx",
+                "reward": 0.0,
+                "creation_time": 1783691766.3453312,
+                "auxillary_file_paths": [
+                    "results/blindwalker_comm_cloud_s1/CommMAPOCABrain/CommMAPOCABrain-30000108.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 30000108,
+            "file_path": "results/blindwalker_comm_cloud_s1/CommMAPOCABrain.onnx",
+            "reward": 0.0,
+            "creation_time": 1783691766.3453312,
+            "auxillary_file_paths": [
+                "results/blindwalker_comm_cloud_s1/CommMAPOCABrain/CommMAPOCABrain-30000108.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.2.0.dev0",
+        "torch_version": "2.5.1+cu124"
+    }
+}

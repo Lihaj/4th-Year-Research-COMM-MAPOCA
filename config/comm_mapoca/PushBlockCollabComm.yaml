@@ -24,8 +24,11 @@ behaviors:
         gamma: 0.99
         strength: 1.0
     keep_checkpoints: 5
-    # 15M -> 30M (2026-07-09): reward was still climbing linearly at the 15M cutoff
-    # (constant LR schedule, so resuming is seamless with no warm-restart effect)
-    max_steps: 30000000
+    # 15M -> 30M (2026-07-09): reward still climbing at the 15M cutoff.
+    # 30M -> 40M (2026-07-11): long-run capability extension - reward ~1.14 at 30M,
+    # still rising slowly; testing how far the architecture can go. NOTE: the paper's
+    # matched-budget comparison figure remains 30M-vs-30M; this extension is a
+    # separate capability result. Constant LR schedule -> resume is seamless.
+    max_steps: 40000000
     time_horizon: 64
     summary_freq: 60000
