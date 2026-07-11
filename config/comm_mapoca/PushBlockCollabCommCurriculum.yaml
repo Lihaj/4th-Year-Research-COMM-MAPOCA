@@ -75,7 +75,10 @@ environment_parameters:
           behavior: CommPushBlock
           signal_smoothing: true
           min_lesson_length: 150
-          threshold: 2.8
+          # 2.8 -> 3.4: at 2.8 the two smalls (~1.9) let agents advance while
+          # clearing the large only ~45% of the time; 3.4 demands ~75% -- the
+          # 2-agent push must be a reliable skill before leaving the nursery.
+          threshold: 3.4
         value: 3.0
       - name: L4_SmallsPlusLargeAnywhere
         completion_criteria:
