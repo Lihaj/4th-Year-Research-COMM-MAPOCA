@@ -28,6 +28,7 @@ public class CommPushBlockEnvController : MonoBehaviour
         [HideInInspector] public Vector3 StartingPos;
         [HideInInspector] public Quaternion StartingRot;
         [HideInInspector] public Rigidbody Rb;
+        [HideInInspector] public float PrevGoalDist;
     }
 
     [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 25000;
@@ -59,6 +60,9 @@ public class CommPushBlockEnvController : MonoBehaviour
 
     [Tooltip("Minimum flat distance from the goal zone's center that near-goal spawns keep, so a block never starts ON the strip (instant score, nothing learned). Should be ~strip half-width + block size + margin.")]
     public float minGoalDistance = 5f;
+
+    [Tooltip("Potential-based shaping for HEAVY blocks (blockLarge/blockVeryLarge): each physics step the team earns (previous - current block distance to goal) x this scale. Random exploration rarely completes a heavy push, so this dense signal ignites the skill; pushing goal-ward pays, pushing away costs. 0 disables. Requires goalZone.")]
+    public float heavyShapingScale = 0.05f;
 
     // Per-lesson difficulty table, selected by the 'pb_lesson' environment parameter.
     // Blocks are picked BY TAG (blockSmall/blockLarge/blockVeryLarge), so the
@@ -116,6 +120,32 @@ public class CommPushBlockEnvController : MonoBehaviour
 
         // Hurry-up penalty (identical to stock)
         m_AgentGroup.AddGroupReward(-0.5f / MaxEnvironmentSteps);
+
+        // Heavy-block "getting warmer" shaping (potential-based, like the Blind
+        // Walker's): reward the team for heavy blocks getting CLOSER to the goal.
+        if (heavyShapingScale != 0f && goalZone != null)
+        {
+            foreach (var item in BlocksList)
+            {
+                if (item.T == null || !item.T.gameObject.activeInHierarchy || !IsHeavy(item.T))
+                    continue;
+                float curr = FlatDistToGoal(item.T.position);
+                m_AgentGroup.AddGroupReward((item.PrevGoalDist - curr) * heavyShapingScale);
+                item.PrevGoalDist = curr;
+            }
+        }
+    }
+
+    static bool IsHeavy(Transform t)
+    {
+        return t.CompareTag("blockLarge") || t.CompareTag("blockVeryLarge");
+    }
+
+    float FlatDistToGoal(Vector3 pos)
+    {
+        var d = pos - goalZone.position;
+        d.y = 0f;
+        return d.magnitude;
     }
 
     public Vector3 GetRandomSpawnPos()
@@ -244,6 +274,10 @@ public class CommPushBlockEnvController : MonoBehaviour
                 item.Rb.angularVelocity = Vector3.zero;
                 item.T.gameObject.SetActive(true);
                 activeCount++;
+
+                // Seed the shaping baseline so the first delta after reset is ~0
+                if (goalZone != null)
+                    item.PrevGoalDist = FlatDistToGoal(item.T.position);
             }
             else
             {
