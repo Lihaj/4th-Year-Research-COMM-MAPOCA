@@ -47,12 +47,22 @@ class CommMAPOCATrainer(POCATrainer):
             sum(step.group_reward for step in trajectory.steps)
         )
         super()._process_trajectory(trajectory)
-        if trajectory.done_reached and trajectory.all_group_dones_reached:
-            self.reward_buffer.appendleft(self._group_reward_acc.pop(agent_id, 0.0))
-        elif trajectory.done_reached:
-            # Mirrors POCA: agent finished but the group episode did not -- the
-            # partial sum is discarded, matching collected_group_rewards handling.
-            self._group_reward_acc.pop(agent_id, None)
+        if trajectory.done_reached:
+            # Stock _update_end_episode_stats (called inside super) just
+            # appendleft-ed the INDIVIDUAL episode reward (~0 in group-reward
+            # tasks). REPLACE it with the episodic GROUP reward -- appending
+            # alongside would leave the buffer mean at ~half the true group
+            # performance and stall lesson thresholds.
+            if len(self.reward_buffer) > 0:
+                self.reward_buffer.popleft()
+            if trajectory.all_group_dones_reached:
+                self.reward_buffer.appendleft(
+                    self._group_reward_acc.pop(agent_id, 0.0)
+                )
+            else:
+                # Group episode did not complete (e.g. interruption): discard
+                # the partial sum, matching collected_group_rewards handling.
+                self._group_reward_acc.pop(agent_id, None)
 
     def end_episode(self) -> None:
         super().end_episode()
