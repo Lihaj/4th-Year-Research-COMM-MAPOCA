@@ -1,0 +1,65 @@
+{
+    "CommPushBlock": {
+        "checkpoints": [
+            {
+                "steps": 38499984,
+                "file_path": "results/pushblock_comm_fullobs_s1/CommPushBlock/CommPushBlock-38499984.onnx",
+                "reward": null,
+                "creation_time": 1783733297.0976303,
+                "auxillary_file_paths": [
+                    "results/pushblock_comm_fullobs_s1/CommPushBlock/CommPushBlock-38499984.pt"
+                ]
+            },
+            {
+                "steps": 38999952,
+                "file_path": "results/pushblock_comm_fullobs_s1/CommPushBlock/CommPushBlock-38999952.onnx",
+                "reward": null,
+                "creation_time": 1783734235.731968,
+                "auxillary_file_paths": [
+                    "results/pushblock_comm_fullobs_s1/CommPushBlock/CommPushBlock-38999952.pt"
+                ]
+            },
+            {
+                "steps": 39499960,
+                "file_path": "results/pushblock_comm_fullobs_s1/CommPushBlock/CommPushBlock-39499960.onnx",
+                "reward": 0.0,
+                "creation_time": 1783735165.7543302,
+                "auxillary_file_paths": [
+                    "results/pushblock_comm_fullobs_s1/CommPushBlock/CommPushBlock-39499960.pt"
+                ]
+            },
+            {
+                "steps": 39999936,
+                "file_path": "results/pushblock_comm_fullobs_s1/CommPushBlock/CommPushBlock-39999936.onnx",
+                "reward": null,
+                "creation_time": 1783736095.598514,
+                "auxillary_file_paths": [
+                    "results/pushblock_comm_fullobs_s1/CommPushBlock/CommPushBlock-39999936.pt"
+                ]
+            },
+            {
+                "steps": 40000192,
+                "file_path": "results/pushblock_comm_fullobs_s1/CommPushBlock/CommPushBlock-40000192.onnx",
+                "reward": null,
+                "creation_time": 1783736095.8358872,
+                "auxillary_file_paths": [
+                    "results/pushblock_comm_fullobs_s1/CommPushBlock/CommPushBlock-40000192.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 40000192,
+            "file_path": "results/pushblock_comm_fullobs_s1/CommPushBlock.onnx",
+            "reward": null,
+            "creation_time": 1783736095.8358872,
+            "auxillary_file_paths": [
+                "results/pushblock_comm_fullobs_s1/CommPushBlock/CommPushBlock-40000192.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.2.0.dev0",
+        "torch_version": "2.5.1+cu121"
+    }
+}

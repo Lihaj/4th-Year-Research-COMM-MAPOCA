@@ -177,17 +177,39 @@ public class CommPushBlockEnvController : MonoBehaviour
             item.Rb.angularVelocity = Vector3.zero;
         }
 
-        foreach (var item in BlocksList)
-        {
-            var pos = UseRandomBlockPosition ? GetRandomSpawnPos() : item.StartingPos;
-            var rot = UseRandomBlockRotation ? GetRandomRot() : item.StartingRot;
+        // --- CURRICULUM: how many blocks participate this episode ---
+        // Read the lesson value "active_blocks" from the trainer (set per lesson in the
+        // curriculum YAML). Defaults to ALL blocks when no curriculum is configured, so
+        // non-curriculum scenes behave exactly as before. ORDER BlocksList easiest-first
+        // in the Inspector (small, small, large, large, very large, very large) so early
+        // lessons use solo-pushable blocks and later lessons add the cooperative ones.
+        int activeBlocks = Mathf.Clamp(
+            Mathf.RoundToInt(
+                Academy.Instance.EnvironmentParameters.GetWithDefault(
+                    "active_blocks", BlocksList.Count)),
+            1, BlocksList.Count);
 
-            item.T.transform.SetPositionAndRotation(pos, rot);
-            item.Rb.linearVelocity = Vector3.zero;
-            item.Rb.angularVelocity = Vector3.zero;
-            item.T.gameObject.SetActive(true);
+        for (int i = 0; i < BlocksList.Count; i++)
+        {
+            var item = BlocksList[i];
+            if (i < activeBlocks)
+            {
+                var pos = UseRandomBlockPosition ? GetRandomSpawnPos() : item.StartingPos;
+                var rot = UseRandomBlockRotation ? GetRandomRot() : item.StartingRot;
+
+                item.T.transform.SetPositionAndRotation(pos, rot);
+                item.Rb.linearVelocity = Vector3.zero;
+                item.Rb.angularVelocity = Vector3.zero;
+                item.T.gameObject.SetActive(true);
+            }
+            else
+            {
+                // Not part of this lesson: park it inactive (also removes it from
+                // sensors and from the remaining-blocks win condition).
+                item.T.gameObject.SetActive(false);
+            }
         }
 
-        m_NumberOfRemainingBlocks = BlocksList.Count;
+        m_NumberOfRemainingBlocks = activeBlocks;
     }
 }
