@@ -57,6 +57,9 @@ public class CommPushBlockEnvController : MonoBehaviour
     [Tooltip("The green goal zone. Early lessons spawn blocks NEAR it (short pushes ignite learning); later lessons spawn fully randomly. If null, near-goal spawning is disabled.")]
     public Transform goalZone;
 
+    [Tooltip("Minimum flat distance from the goal zone's center that near-goal spawns keep, so a block never starts ON the strip (instant score, nothing learned). Should be ~strip half-width + block size + margin.")]
+    public float minGoalDistance = 5f;
+
     // Per-lesson difficulty table, selected by the 'pb_lesson' environment parameter.
     // Blocks are picked BY TAG (blockSmall/blockLarge/blockVeryLarge), so the
     // Inspector order of BlocksList does not matter. spread: 0 = beside the goal,
@@ -260,6 +263,19 @@ public class CommPushBlockEnvController : MonoBehaviour
         if (goalZone == null || spread >= 0.999f)
             return randomPos;
         var p = Vector3.Lerp(goalZone.position, randomPos, Mathf.Clamp01(spread));
+
+        // Never inside the goal zone: enforce a minimum flat distance so the
+        // block always needs an actual push to score.
+        var flat = p - goalZone.position;
+        flat.y = 0f;
+        if (flat.sqrMagnitude < minGoalDistance * minGoalDistance)
+        {
+            var dirFlat = randomPos - goalZone.position;
+            dirFlat.y = 0f;
+            var dir = dirFlat.sqrMagnitude > 0.01f ? dirFlat.normalized : transform.forward;
+            p = goalZone.position + dir * minGoalDistance;
+        }
+
         p.y = 1f;
         return p;
     }

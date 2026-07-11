@@ -11,17 +11,17 @@ PrefabInstance:
     - target: {fileID: 4704531522807670703, guid: f5bbed44a6ea747a687fbbb738eb1730,
         type: 3}
       propertyPath: m_ShowGizmos
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5209480863315757857, guid: f5bbed44a6ea747a687fbbb738eb1730,
         type: 3}
       propertyPath: m_ShowGizmos
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5647538748879581392, guid: f5bbed44a6ea747a687fbbb738eb1730,
         type: 3}
       propertyPath: m_ShowGizmos
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8086947156390584041, guid: f5bbed44a6ea747a687fbbb738eb1730,
         type: 3}
@@ -399,6 +399,7 @@ MonoBehaviour:
   UseRandomBlockRotation: 1
   UseRandomBlockPosition: 1
   commChannel: {fileID: 0}
+  goalZone: {fileID: 5691688554506942855}
 --- !u!114 &765253559347323868
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -418,6 +419,7 @@ MonoBehaviour:
   allowSelfMessages: 0
   showFlowGizmos: 1
   gizmoAttentionCutoff: 0.05
+  gizmoLaneOffset: 0.25
 --- !u!4 &5689160506226970434 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8191066184649639636, guid: f5bbed44a6ea747a687fbbb738eb1730,
@@ -496,6 +498,12 @@ MonoBehaviour:
 --- !u!4 &5691424303634151535 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8188518438377222649, guid: f5bbed44a6ea747a687fbbb738eb1730,
+    type: 3}
+  m_PrefabInstance: {fileID: 4566498416117844374}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5691688554506942855 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8188536470049157137, guid: f5bbed44a6ea747a687fbbb738eb1730,
     type: 3}
   m_PrefabInstance: {fileID: 4566498416117844374}
   m_PrefabAsset: {fileID: 0}
