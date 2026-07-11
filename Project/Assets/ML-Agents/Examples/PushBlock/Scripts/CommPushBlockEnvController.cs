@@ -64,9 +64,13 @@ public class CommPushBlockEnvController : MonoBehaviour
     // Blocks are picked BY TAG (blockSmall/blockLarge/blockVeryLarge), so the
     // Inspector order of BlocksList does not matter. spread: 0 = beside the goal,
     // 1 = fully random spawn.
+    // v3: every rung KEEPS the mastered blocks and adds one new element.
+    // (v2's L3 = one lone large removed all familiar objects; the blockLarge
+    // sensor channel had never activated before, so agents wandered at -0.5
+    // for 1.3M steps without ever engaging it.)
     //                                    L0    L1  L2  L3    L4  L5    L6  L7
-    static readonly int[]   kSmalls  = {  1,    1,  2,  0,    2,  0,    2,  2 };
-    static readonly int[]   kLarges  = {  0,    0,  0,  1,    1,  0,    1,  2 };
+    static readonly int[]   kSmalls  = {  1,    1,  2,  2,    2,  2,    2,  2 };
+    static readonly int[]   kLarges  = {  0,    0,  0,  1,    1,  1,    2,  2 };
     static readonly int[]   kVLarges = {  0,    0,  0,  0,    0,  1,    1,  2 };
     static readonly float[] kSpread  = { 0.15f, 1f, 1f, 0.3f, 1f, 0.3f, 1f, 1f };
 

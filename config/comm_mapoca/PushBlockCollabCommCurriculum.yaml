@@ -37,10 +37,10 @@ environment_parameters:
   #   0      | 1 small                     | beside goal 0.15 | ~1
   #   1      | 1 small                     | random           | ~1
   #   2      | 2 small                     | random           | ~2
-  #   3      | 1 large (2-agent block)     | near goal 0.3    | ~2
+  #   3      | 2 small + 1 large           | near goal 0.3    | ~4
   #   4      | 2 small + 1 large           | random           | ~4
-  #   5      | 1 very large (3-agent)      | near goal 0.3    | ~3
-  #   6      | 2 small + 1 large + 1 vlarge| random           | ~7
+  #   5      | 2 small + 1 large + 1 vlarge| near goal 0.3    | ~7
+  #   6      | 2 small + 2 large + 1 vlarge| random           | ~9
   #   7      | ALL 6 blocks                | random           | ~12
   # Thresholds sit ~70% of each lesson's achievable maximum (group reward).
   pb_lesson:
@@ -69,15 +69,15 @@ environment_parameters:
           min_lesson_length: 150
           threshold: 1.5
         value: 2.0
-      - name: L3_OneLargeNearGoal
+      - name: L3_SmallsPlusLargeNearGoal
         completion_criteria:
           measure: reward
           behavior: CommPushBlock
           signal_smoothing: true
           min_lesson_length: 150
-          threshold: 1.4
+          threshold: 2.8
         value: 3.0
-      - name: L4_SmallsPlusLarge
+      - name: L4_SmallsPlusLargeAnywhere
         completion_criteria:
           measure: reward
           behavior: CommPushBlock
@@ -85,21 +85,21 @@ environment_parameters:
           min_lesson_length: 150
           threshold: 2.8
         value: 4.0
-      - name: L5_OneVeryLargeNearGoal
-        completion_criteria:
-          measure: reward
-          behavior: CommPushBlock
-          signal_smoothing: true
-          min_lesson_length: 150
-          threshold: 2.1
-        value: 5.0
-      - name: L6_MixedFour
+      - name: L5_AddVeryLargeNearGoal
         completion_criteria:
           measure: reward
           behavior: CommPushBlock
           signal_smoothing: true
           min_lesson_length: 150
           threshold: 5.0
+        value: 5.0
+      - name: L6_MixedFive
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlock
+          signal_smoothing: true
+          min_lesson_length: 150
+          threshold: 6.5
         value: 6.0
       - name: L7_FullTask
         value: 7.0
