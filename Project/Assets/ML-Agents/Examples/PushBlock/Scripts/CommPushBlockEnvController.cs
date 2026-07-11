@@ -53,6 +53,20 @@ public class CommPushBlockEnvController : MonoBehaviour
     [Tooltip("The Comm-MAPOCA channel for this arena. Auto-found on this GameObject if left null.")]
     public CommChannel commChannel;
 
+    [Header("Curriculum")]
+    [Tooltip("The green goal zone. Early lessons spawn blocks NEAR it (short pushes ignite learning); later lessons spawn fully randomly. If null, near-goal spawning is disabled.")]
+    public Transform goalZone;
+
+    // Per-lesson difficulty table, selected by the 'pb_lesson' environment parameter.
+    // Blocks are picked BY TAG (blockSmall/blockLarge/blockVeryLarge), so the
+    // Inspector order of BlocksList does not matter. spread: 0 = beside the goal,
+    // 1 = fully random spawn.
+    //                                    L0    L1  L2  L3    L4  L5    L6  L7
+    static readonly int[]   kSmalls  = {  1,    1,  2,  0,    2,  0,    2,  2 };
+    static readonly int[]   kLarges  = {  0,    0,  0,  1,    1,  0,    1,  2 };
+    static readonly int[]   kVLarges = {  0,    0,  0,  0,    0,  1,    1,  2 };
+    static readonly float[] kSpread  = { 0.15f, 1f, 1f, 0.3f, 1f, 0.3f, 1f, 1f };
+
     private int m_NumberOfRemainingBlocks;
     private SimpleMultiAgentGroup m_AgentGroup;
     private int m_ResetTimer;
@@ -177,30 +191,52 @@ public class CommPushBlockEnvController : MonoBehaviour
             item.Rb.angularVelocity = Vector3.zero;
         }
 
-        // --- CURRICULUM: how many blocks participate this episode ---
-        // Read the lesson value "active_blocks" from the trainer (set per lesson in the
-        // curriculum YAML). Defaults to ALL blocks when no curriculum is configured, so
-        // non-curriculum scenes behave exactly as before. ORDER BlocksList easiest-first
-        // in the Inspector (small, small, large, large, very large, very large) so early
-        // lessons use solo-pushable blocks and later lessons add the cooperative ones.
-        int activeBlocks = Mathf.Clamp(
-            Mathf.RoundToInt(
-                Academy.Instance.EnvironmentParameters.GetWithDefault(
-                    "active_blocks", BlocksList.Count)),
-            1, BlocksList.Count);
+        // --- CURRICULUM: which blocks participate, and where they spawn ---
+        // 'pb_lesson' (set per lesson in the curriculum YAML) indexes the difficulty
+        // table above. Default -1 = no curriculum = all blocks, fully random spawn,
+        // so non-curriculum scenes behave exactly as before.
+        int lesson = Mathf.RoundToInt(
+            Academy.Instance.EnvironmentParameters.GetWithDefault("pb_lesson", -1f));
 
-        for (int i = 0; i < BlocksList.Count; i++)
+        int wantSmall, wantLarge, wantVLarge;
+        float spread;
+        if (lesson < 0)
         {
-            var item = BlocksList[i];
-            if (i < activeBlocks)
+            wantSmall = wantLarge = wantVLarge = int.MaxValue; // everything
+            spread = 1f;
+        }
+        else
+        {
+            lesson = Mathf.Clamp(lesson, 0, kSmalls.Length - 1);
+            wantSmall = kSmalls[lesson];
+            wantLarge = kLarges[lesson];
+            wantVLarge = kVLarges[lesson];
+            spread = kSpread[lesson];
+        }
+
+        int activeCount = 0;
+        foreach (var item in BlocksList)
+        {
+            bool active;
+            if (item.T.CompareTag("blockSmall"))
+                active = wantSmall-- > 0;
+            else if (item.T.CompareTag("blockLarge"))
+                active = wantLarge-- > 0;
+            else if (item.T.CompareTag("blockVeryLarge"))
+                active = wantVLarge-- > 0;
+            else
+                active = true; // untagged/custom blocks always participate
+
+            if (active)
             {
-                var pos = UseRandomBlockPosition ? GetRandomSpawnPos() : item.StartingPos;
+                var pos = UseRandomBlockPosition ? GetCurriculumSpawnPos(spread) : item.StartingPos;
                 var rot = UseRandomBlockRotation ? GetRandomRot() : item.StartingRot;
 
                 item.T.transform.SetPositionAndRotation(pos, rot);
                 item.Rb.linearVelocity = Vector3.zero;
                 item.Rb.angularVelocity = Vector3.zero;
                 item.T.gameObject.SetActive(true);
+                activeCount++;
             }
             else
             {
@@ -210,6 +246,21 @@ public class CommPushBlockEnvController : MonoBehaviour
             }
         }
 
-        m_NumberOfRemainingBlocks = activeBlocks;
+        m_NumberOfRemainingBlocks = activeCount;
+    }
+
+    /// <summary>
+    /// Block spawn position interpolated between "beside the goal zone" (spread 0)
+    /// and "anywhere in the arena" (spread 1). Short pushes in early lessons give
+    /// frequent accidental scores, igniting the reward bootstrap.
+    /// </summary>
+    Vector3 GetCurriculumSpawnPos(float spread)
+    {
+        var randomPos = GetRandomSpawnPos();
+        if (goalZone == null || spread >= 0.999f)
+            return randomPos;
+        var p = Vector3.Lerp(goalZone.position, randomPos, Mathf.Clamp01(spread));
+        p.y = 1f;
+        return p;
     }
 }

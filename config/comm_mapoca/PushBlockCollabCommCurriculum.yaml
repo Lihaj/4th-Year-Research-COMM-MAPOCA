@@ -1,9 +1,11 @@
 behaviors:
   # Curriculum run of the full-observability Comm-MAPOCA Push Block. Same
   # hyperparameters as PushBlockCollabComm.yaml; difficulty ramps via the
-  # active_blocks environment parameter below instead of starting at the full
-  # 6-block task (whose random-exploration ignition probability is too low --
-  # the flat-at-1.2 40M run demonstrated exactly that).
+  # pb_lesson environment parameter (see the lesson table in
+  # CommPushBlockEnvController). v2: the original 1-block Lesson 0 never
+  # ignited in 6M steps (one block in a 20x20 arena = too few random
+  # encounters); each new block TYPE now gets a near-goal-spawn ignition rung
+  # (spread<1) before full-random spawning.
   CommPushBlock:
     trainer_type: comm_mapoca
     hyperparameters:
@@ -30,52 +32,74 @@ behaviors:
     summary_freq: 60000
 
 environment_parameters:
-  # Number of blocks enabled per episode. BlocksList in the controller must be
-  # ordered easiest-first: small, small, large, large, very large, very large.
-  # Lessons advance automatically when the smoothed GROUP reward crosses the
-  # threshold (thresholds sit ~70-80% of each lesson's achievable maximum:
-  # smalls score 1, larges 2, very larges 3).
-  active_blocks:
+  # Index into the controller's lesson table:
+  #   lesson | blocks                      | spawn            | max reward
+  #   0      | 1 small                     | beside goal 0.15 | ~1
+  #   1      | 1 small                     | random           | ~1
+  #   2      | 2 small                     | random           | ~2
+  #   3      | 1 large (2-agent block)     | near goal 0.3    | ~2
+  #   4      | 2 small + 1 large           | random           | ~4
+  #   5      | 1 very large (3-agent)      | near goal 0.3    | ~3
+  #   6      | 2 small + 1 large + 1 vlarge| random           | ~7
+  #   7      | ALL 6 blocks                | random           | ~12
+  # Thresholds sit ~70% of each lesson's achievable maximum (group reward).
+  pb_lesson:
     curriculum:
-      - name: Lesson0_OneSmall          # max ~1
+      - name: L0_OneSmallBesideGoal
         completion_criteria:
           measure: reward
           behavior: CommPushBlock
           signal_smoothing: true
-          min_lesson_length: 200
+          min_lesson_length: 150
+          threshold: 0.7
+        value: 0.0
+      - name: L1_OneSmallAnywhere
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlock
+          signal_smoothing: true
+          min_lesson_length: 150
           threshold: 0.7
         value: 1.0
-      - name: Lesson1_TwoSmall          # max ~2
+      - name: L2_TwoSmall
         completion_criteria:
           measure: reward
           behavior: CommPushBlock
           signal_smoothing: true
-          min_lesson_length: 200
-          threshold: 1.6
+          min_lesson_length: 150
+          threshold: 1.5
         value: 2.0
-      - name: Lesson2_AddLarge          # max ~4, first 2-agent block
+      - name: L3_OneLargeNearGoal
         completion_criteria:
           measure: reward
           behavior: CommPushBlock
           signal_smoothing: true
-          min_lesson_length: 200
-          threshold: 3.0
+          min_lesson_length: 150
+          threshold: 1.4
         value: 3.0
-      - name: Lesson3_TwoLarge          # max ~6
+      - name: L4_SmallsPlusLarge
         completion_criteria:
           measure: reward
           behavior: CommPushBlock
           signal_smoothing: true
-          min_lesson_length: 200
-          threshold: 4.8
+          min_lesson_length: 150
+          threshold: 2.8
         value: 4.0
-      - name: Lesson4_AddVeryLarge      # max ~9, first 3-agent block
+      - name: L5_OneVeryLargeNearGoal
         completion_criteria:
           measure: reward
           behavior: CommPushBlock
           signal_smoothing: true
-          min_lesson_length: 200
-          threshold: 7.0
+          min_lesson_length: 150
+          threshold: 2.1
         value: 5.0
-      - name: Lesson5_FullTask          # all 6 blocks, max ~12
+      - name: L6_MixedFour
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlock
+          signal_smoothing: true
+          min_lesson_length: 150
+          threshold: 5.0
         value: 6.0
+      - name: L7_FullTask
+        value: 7.0
