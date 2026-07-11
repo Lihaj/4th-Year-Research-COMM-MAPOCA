@@ -58,6 +58,9 @@ namespace Lihaj.CommMAPOCA
         [Range(0f, 1f)]
         public float gizmoAttentionCutoff = 0.05f;
 
+        [Tooltip("Sideways offset (world units) separating the two directions of a pair's message flows into parallel lanes. Without it, A-listens-to-B and B-listens-to-A overlap into one line and their attention colors fight. The sphere sits at the SENDER end of each lane.")]
+        public float gizmoLaneOffset = 0.25f;
+
         /// <summary>Registered agents in registration order — this order defines row order.</summary>
         readonly List<CommAgent> m_Agents = new List<CommAgent>();
 
@@ -190,6 +193,16 @@ namespace Lihaj.CommMAPOCA
                     if (!m_Board.ContainsKey(sender))
                         continue;
 
+                    // Two-lane offset: this reception flow (receiver <- sender) is shifted
+                    // sideways; the reverse flow's direction vector is negated, so its lane
+                    // lands on the opposite side and both directions stay visible.
+                    var from = receiver.transform.position;
+                    var to = sender.transform.position;
+                    var dir = (to - from).normalized;
+                    var lane = Vector3.Cross(dir, Vector3.up) * gizmoLaneOffset;
+                    from += lane;
+                    to += lane;
+
                     if (m_Attention.TryGetValue((receiver, sender), out var w))
                     {
                         if (w < gizmoAttentionCutoff)
@@ -197,13 +210,13 @@ namespace Lihaj.CommMAPOCA
                         var c = Color.Lerp(Color.red, Color.green, w);
                         c.a = 1f;
                         Gizmos.color = c;
-                        Gizmos.DrawLine(receiver.transform.position, sender.transform.position);
-                        Gizmos.DrawSphere(sender.transform.position, 0.5f * w);
+                        Gizmos.DrawLine(from, to);
+                        Gizmos.DrawSphere(to, 0.5f * w);
                     }
                     else
                     {
                         Gizmos.color = Color.cyan;
-                        Gizmos.DrawLine(receiver.transform.position, sender.transform.position);
+                        Gizmos.DrawLine(from, to);
                     }
                 }
             }
