@@ -63,8 +63,8 @@ public class CommPushBlockEnvController : MonoBehaviour
     [Tooltip("Minimum flat distance from the goal zone's center that near-goal spawns keep, so a block never starts ON the strip (instant score, nothing learned). Should be ~strip half-width + block size + margin.")]
     public float minGoalDistance = 5f;
 
-    [Tooltip("Potential-based shaping for HEAVY blocks (blockLarge/blockVeryLarge): each physics step the team earns (previous - current block distance to goal) x this scale. Random exploration rarely completes a heavy push, so this dense signal ignites the skill; pushing goal-ward pays, pushing away costs. 0 disables. Requires goalZone.")]
-    public float heavyShapingScale = 0.05f;
+    [Tooltip("Potential-based shaping for HEAVY blocks (blockLarge/blockVeryLarge): each physics step the team earns (previous - current block distance to goal) x this scale. Random exploration rarely completes a heavy push, so this dense signal ignites the skill; pushing goal-ward pays, pushing away costs. 0 disables (default: benchmark scenes must opt in explicitly). Requires goalZone.")]
+    public float heavyShapingScale = 0f;
 
     [Tooltip("Video-exact shaping (adabeat.com PushBlock experiment): the team earns this reward EACH TIME a heavy block moves further from its episode-start position than ever before (a ratchet - only new record distances pay, so jiggling in place earns nothing). Use 0.001 with goal walls around the arena; 0 disables. Independent of goalZone.")]
     public float awayFromStartReward = 0f;
