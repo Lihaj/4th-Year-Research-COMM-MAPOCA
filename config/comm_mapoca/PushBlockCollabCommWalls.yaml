@@ -1,7 +1,8 @@
 behaviors:
-  # "Goal walls" variant of Comm-MAPOCA Push Block, replicating the adabeat.com
-  # experiment exactly: goal strips along ALL four walls (any wall touch scores),
-  # 1 small + 2 heavy blocks, and +0.001 each time a heavy block sets a new
+  # "Goal walls" variant of Comm-MAPOCA Push Block, adapted from the adabeat.com
+  # experiment: green goal strips along ALL four walls (any wall touch scores),
+  # the FULL 6-block set (2 small + 2 large + 2 very large; max episodic reward
+  # ~12), and +0.001 each time a heavy block (large or very large) sets a new
   # record distance from its episode-start position (awayFromStartReward in the
   # controller; heavyShapingScale must be 0 in this scene). No curriculum.
   CommPushBlockWalls:
