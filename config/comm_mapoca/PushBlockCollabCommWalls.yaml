@@ -1,0 +1,30 @@
+behaviors:
+  # "Goal walls" variant of Comm-MAPOCA Push Block, replicating the adabeat.com
+  # experiment exactly: goal strips along ALL four walls (any wall touch scores),
+  # 1 small + 2 heavy blocks, and +0.001 each time a heavy block sets a new
+  # record distance from its episode-start position (awayFromStartReward in the
+  # controller; heavyShapingScale must be 0 in this scene). No curriculum.
+  CommPushBlockWalls:
+    trainer_type: comm_mapoca
+    hyperparameters:
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 0.0003
+      beta: 0.01
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: constant
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    keep_checkpoints: 5
+    max_steps: 30000000
+    time_horizon: 64
+    summary_freq: 60000
