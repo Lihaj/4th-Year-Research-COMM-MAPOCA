@@ -29,6 +29,8 @@ public class CommPushBlockEnvController : MonoBehaviour
         [HideInInspector] public Quaternion StartingRot;
         [HideInInspector] public Rigidbody Rb;
         [HideInInspector] public float PrevGoalDist;
+        [HideInInspector] public Vector3 EpisodeStartPos;
+        [HideInInspector] public float MaxDistFromStart;
     }
 
     [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 25000;
@@ -63,6 +65,9 @@ public class CommPushBlockEnvController : MonoBehaviour
 
     [Tooltip("Potential-based shaping for HEAVY blocks (blockLarge/blockVeryLarge): each physics step the team earns (previous - current block distance to goal) x this scale. Random exploration rarely completes a heavy push, so this dense signal ignites the skill; pushing goal-ward pays, pushing away costs. 0 disables. Requires goalZone.")]
     public float heavyShapingScale = 0.05f;
+
+    [Tooltip("Video-exact shaping (adabeat.com PushBlock experiment): the team earns this reward EACH TIME a heavy block moves further from its episode-start position than ever before (a ratchet - only new record distances pay, so jiggling in place earns nothing). Use 0.001 with goal walls around the arena; 0 disables. Independent of goalZone.")]
+    public float awayFromStartReward = 0f;
 
     // Per-lesson difficulty table, selected by the 'pb_lesson' environment parameter.
     // Blocks are picked BY TAG (blockSmall/blockLarge/blockVeryLarge), so the
@@ -132,6 +137,25 @@ public class CommPushBlockEnvController : MonoBehaviour
                 float curr = FlatDistToGoal(item.T.position);
                 m_AgentGroup.AddGroupReward((item.PrevGoalDist - curr) * heavyShapingScale);
                 item.PrevGoalDist = curr;
+            }
+        }
+
+        // Video-exact heavy-block shaping: +awayFromStartReward each time a heavy
+        // block sets a NEW record distance from its episode-start position.
+        if (awayFromStartReward != 0f)
+        {
+            foreach (var item in BlocksList)
+            {
+                if (item.T == null || !item.T.gameObject.activeInHierarchy || !IsHeavy(item.T))
+                    continue;
+                var flat = item.T.position - item.EpisodeStartPos;
+                flat.y = 0f;
+                float d = flat.magnitude;
+                if (d > item.MaxDistFromStart + 0.01f)
+                {
+                    m_AgentGroup.AddGroupReward(awayFromStartReward);
+                    item.MaxDistFromStart = d;
+                }
             }
         }
     }
@@ -275,9 +299,11 @@ public class CommPushBlockEnvController : MonoBehaviour
                 item.T.gameObject.SetActive(true);
                 activeCount++;
 
-                // Seed the shaping baseline so the first delta after reset is ~0
+                // Seed the shaping baselines so the first deltas after reset are ~0
                 if (goalZone != null)
                     item.PrevGoalDist = FlatDistToGoal(item.T.position);
+                item.EpisodeStartPos = item.T.position;
+                item.MaxDistFromStart = 0f;
             }
             else
             {
