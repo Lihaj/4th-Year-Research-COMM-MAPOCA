@@ -290,7 +290,7 @@ public class CommPushBlockEnvController : MonoBehaviour
 
             if (active)
             {
-                var pos = UseRandomBlockPosition ? GetCurriculumSpawnPos(spread) : item.StartingPos;
+                var pos = UseRandomBlockPosition ? GetSafeBlockSpawnPos(spread) : item.StartingPos;
                 var rot = UseRandomBlockRotation ? GetRandomRot() : item.StartingRot;
 
                 item.T.transform.SetPositionAndRotation(pos, rot);
@@ -314,6 +314,34 @@ public class CommPushBlockEnvController : MonoBehaviour
         }
 
         m_NumberOfRemainingBlocks = activeCount;
+    }
+
+    /// <summary>
+    /// Block spawn position guaranteed not to overlap any goal-tagged trigger.
+    /// With goal strips along the walls, a block spawning ON a strip would score
+    /// instantly at reset and teach nothing. (Agents may still spawn on strips
+    /// harmlessly -- scoring triggers live on the blocks.)
+    /// </summary>
+    Vector3 GetSafeBlockSpawnPos(float spread)
+    {
+        var pos = GetCurriculumSpawnPos(spread);
+        for (int i = 0; i < 25 && BlockPosTouchesGoal(pos); i++)
+            pos = GetCurriculumSpawnPos(spread);
+        return pos;
+    }
+
+    static readonly Collider[] s_OverlapBuf = new Collider[16];
+
+    bool BlockPosTouchesGoal(Vector3 pos)
+    {
+        // Generous probe (covers even the very-large blocks' footprint).
+        int n = Physics.OverlapBoxNonAlloc(pos, new Vector3(2f, 1.5f, 2f), s_OverlapBuf);
+        for (int i = 0; i < n; i++)
+        {
+            if (s_OverlapBuf[i].CompareTag("goal"))
+                return true;
+        }
+        return false;
     }
 
     /// <summary>
