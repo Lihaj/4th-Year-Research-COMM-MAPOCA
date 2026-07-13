@@ -26,7 +26,11 @@ behaviors:
       extrinsic:
         gamma: 0.99
         strength: 1.0
-    keep_checkpoints: 5
+    # 5 -> 20: at 5, the rolling window pruned the L3->L4 checkpoint before we
+    # could roll back to it once L4-L7 turned out to be reward-hacked (heavy
+    # blocks touched for ratchet ticks, never actually pushed to goal). 20
+    # keeps a much longer history at the same ~500k-step checkpoint interval.
+    keep_checkpoints: 20
     max_steps: 30000000
     time_horizon: 64
     summary_freq: 60000
@@ -42,7 +46,14 @@ environment_parameters:
   #   5      | 2 small + 1 large + 1 vlarge| near goal 0.3    | ~7
   #   6      | 2 small + 2 large + 1 vlarge| random           | ~9
   #   7      | ALL 6 blocks                | random           | ~12
-  # Thresholds sit ~70% of each lesson's achievable maximum (group reward).
+  # L0-L2 thresholds sit ~70% of each lesson's achievable maximum (group
+  # reward); these blocks are never IsHeavy so they're not reachable by the
+  # heavy-block ratchet/shaping rewards below and were never implicated in
+  # the L4-L7 reward-hacking incident. L3+ sit ~85% -- at 70% (L4's original
+  # 2.8, L5's 5.0, L6's 6.5) agents cleared the bar by touching heavy blocks
+  # for ratchet/ignition reward without ever completing the push, and rode
+  # that through L4->L7 in under 1M steps. 85% forces enough reward that only
+  # genuinely-completed pushes can reach it.
   pb_lesson:
     curriculum:
       - name: L0_OneSmallBesideGoal
@@ -86,7 +97,7 @@ environment_parameters:
           behavior: CommPushBlock
           signal_smoothing: true
           min_lesson_length: 150
-          threshold: 2.8
+          threshold: 3.4
         value: 4.0
       - name: L5_AddVeryLargeNearGoal
         completion_criteria:
@@ -94,7 +105,7 @@ environment_parameters:
           behavior: CommPushBlock
           signal_smoothing: true
           min_lesson_length: 150
-          threshold: 5.0
+          threshold: 6.0
         value: 5.0
       - name: L6_MixedFive
         completion_criteria:
@@ -102,7 +113,7 @@ environment_parameters:
           behavior: CommPushBlock
           signal_smoothing: true
           min_lesson_length: 150
-          threshold: 6.5
+          threshold: 7.5
         value: 6.0
       - name: L7_FullTask
         value: 7.0
