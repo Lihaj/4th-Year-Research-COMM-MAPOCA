@@ -276,7 +276,16 @@ public class CommPushBlockEnvController : MonoBehaviour
         }
 
         int activeCount = 0;
-        foreach (var item in BlocksList)
+
+        // Heavy blocks get first claim on the near-goal spawn region: they're
+        // what a new lesson is trying to bootstrap, while already-mastered small
+        // blocks don't need to be tight to the goal. Placing them first means the
+        // overlap-retry in GetSafeBlockSpawnPos pushes SMALLS out of the crowded
+        // spot instead of the heavy block that actually needs proximity.
+        var placementOrder = new List<BlockInfo>(BlocksList);
+        placementOrder.Sort((a, b) => (IsHeavy(a.T) ? 0 : 1).CompareTo(IsHeavy(b.T) ? 0 : 1));
+
+        foreach (var item in placementOrder)
         {
             bool active;
             if (item.T.CompareTag("blockSmall"))
@@ -345,30 +354,45 @@ public class CommPushBlockEnvController : MonoBehaviour
     }
 
     /// <summary>
-    /// Block spawn position interpolated between "beside the goal zone" (spread 0)
-    /// and "anywhere in the arena" (spread 1). Short pushes in early lessons give
-    /// frequent accidental scores, igniting the reward bootstrap.
+    /// Block spawn position in a tight distance band from the goal zone (spread 0)
+    /// widening toward "anywhere in the arena" (spread 1, which bypasses this function
+    /// entirely). Short pushes in early lessons give frequent accidental scores,
+    /// igniting the reward bootstrap.
     /// </summary>
     Vector3 GetCurriculumSpawnPos(float spread)
     {
-        var randomPos = GetRandomSpawnPos();
         if (goalZone == null || spread >= 0.999f)
-            return randomPos;
-        var p = Vector3.Lerp(goalZone.position, randomPos, Mathf.Clamp01(spread));
+            return GetRandomSpawnPos();
 
-        // Never inside the goal zone: enforce a minimum flat distance so the
-        // block always needs an actual push to score.
-        var flat = p - goalZone.position;
-        flat.y = 0f;
-        if (flat.sqrMagnitude < minGoalDistance * minGoalDistance)
+        // Distance band, NOT a lerp toward an arbitrary random point: lerping only
+        // enforced a minimum distance from goal, never a maximum, so whenever the
+        // random point landed on the far side of the (~25-unit) arena, even a tight
+        // spread like 0.15 could still leave the block several units out. Sampling
+        // directly within [minGoalDistance, minGoalDistance + spread*10] keeps every
+        // near-goal lesson consistently tight regardless of arena rotation.
+        float maxDist = minGoalDistance + spread * 10f;
+
+        for (int i = 0; i < 25; i++)
         {
+            // Direction from a legally-spawnable random point, so we stay inside the
+            // arena and away from walls; only the distance is overridden.
+            var randomPos = GetRandomSpawnPos();
             var dirFlat = randomPos - goalZone.position;
             dirFlat.y = 0f;
             var dir = dirFlat.sqrMagnitude > 0.01f ? dirFlat.normalized : transform.forward;
-            p = goalZone.position + dir * minGoalDistance;
+            var p = goalZone.position + dir * Random.Range(minGoalDistance, maxDist);
+
+            p.y = 1f;
+
+            // p is a fresh point near goalZone, not randomPos itself -- randomPos was
+            // collision-checked but only used for direction, so p still needs its own
+            // check (this is the fix for blocks spawning stacked at low spread).
+            if (!Physics.CheckBox(p, new Vector3(1.5f, 0.01f, 1.5f)))
+                return p;
         }
 
-        p.y = 1f;
-        return p;
+        // Repeatedly collided near the goal anchor: fall back to a plain
+        // collision-checked random spot rather than spawning on top of something.
+        return GetRandomSpawnPos();
     }
 }

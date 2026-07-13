@@ -374,32 +374,53 @@ MonoBehaviour:
     StartingPos: {x: 0, y: 0, z: 0}
     StartingRot: {x: 0, y: 0, z: 0, w: 0}
     Rb: {fileID: 0}
+    PrevGoalDist: 0
+    EpisodeStartPos: {x: 0, y: 0, z: 0}
+    MaxDistFromStart: 0
   - T: {fileID: 5689160507242197409}
     StartingPos: {x: 0, y: 0, z: 0}
     StartingRot: {x: 0, y: 0, z: 0, w: 0}
     Rb: {fileID: 0}
+    PrevGoalDist: 0
+    EpisodeStartPos: {x: 0, y: 0, z: 0}
+    MaxDistFromStart: 0
   - T: {fileID: 5691424303634151535}
     StartingPos: {x: 0, y: 0, z: 0}
     StartingRot: {x: 0, y: 0, z: 0, w: 0}
     Rb: {fileID: 0}
+    PrevGoalDist: 0
+    EpisodeStartPos: {x: 0, y: 0, z: 0}
+    MaxDistFromStart: 0
   - T: {fileID: 5689160507926605920}
     StartingPos: {x: 0, y: 0, z: 0}
     StartingRot: {x: 0, y: 0, z: 0, w: 0}
     Rb: {fileID: 0}
+    PrevGoalDist: 0
+    EpisodeStartPos: {x: 0, y: 0, z: 0}
+    MaxDistFromStart: 0
   - T: {fileID: 5689160506226970434}
     StartingPos: {x: 0, y: 0, z: 0}
     StartingRot: {x: 0, y: 0, z: 0, w: 0}
     Rb: {fileID: 0}
+    PrevGoalDist: 0
+    EpisodeStartPos: {x: 0, y: 0, z: 0}
+    MaxDistFromStart: 0
   - T: {fileID: 5689160506357470256}
     StartingPos: {x: 0, y: 0, z: 0}
     StartingRot: {x: 0, y: 0, z: 0, w: 0}
     Rb: {fileID: 0}
+    PrevGoalDist: 0
+    EpisodeStartPos: {x: 0, y: 0, z: 0}
+    MaxDistFromStart: 0
   UseRandomAgentRotation: 1
   UseRandomAgentPosition: 1
   UseRandomBlockRotation: 1
   UseRandomBlockPosition: 1
   commChannel: {fileID: 0}
   goalZone: {fileID: 5691688554506942855}
+  minGoalDistance: 5
+  heavyShapingScale: 0
+  awayFromStartReward: 0
 --- !u!114 &765253559347323868
 MonoBehaviour:
   m_ObjectHideFlags: 0
