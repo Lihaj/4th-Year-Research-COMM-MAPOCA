@@ -37,22 +37,38 @@ behaviors:
 
 environment_parameters:
   # Index into the controller's lesson table:
-  #   lesson | blocks                      | spawn            | max reward
-  #   0      | 1 small                     | beside goal 0.15 | ~1
-  #   1      | 1 small                     | random           | ~1
-  #   2      | 2 small                     | random           | ~2
-  #   3      | 2 small + 1 large           | near goal 0.3    | ~4
-  #   4      | 2 small + 1 large           | random           | ~4
-  #   5      | 2 small + 1 large + 1 vlarge| near goal 0.3    | ~7
-  #   6      | 2 small + 2 large + 1 vlarge| random           | ~9
-  #   7      | ALL 6 blocks                | random           | ~12
+  #   lesson | blocks                                    | spawn            | max reward
+  #   0      | 1 small                                   | beside goal 0.15 | ~1
+  #   1      | 1 small                                   | random           | ~1
+  #   2      | 2 small                                   | random           | ~2
+  #   3      | 2 small + 1 large (LIGHT mass)             | near goal 0.3    | ~4
+  #   4      | 2 small + 1 large (real mass)               | near goal 0.3    | ~4
+  #   5      | 2 small + 1 large (real mass)               | random           | ~4
+  #   6      | 2 small + 1 large + 1 vlarge (vlarge LIGHT) | near goal 0.3    | ~7
+  #   7      | 2 small + 1 large + 1 vlarge (real mass)    | near goal 0.3    | ~7
+  #   8      | 2 small + 1 large + 1 vlarge (real mass)    | random           | ~7
+  #   9      | 2 small + 2 large + 1 vlarge (real mass)    | random           | ~9
+  #   10     | ALL 6 blocks (real mass)                    | random           | ~12
+  # L3 and L6 (v4) are "light mass" rungs: the newly-introduced heavy block
+  # temporarily masses the same as a small block (see kLightenLarge/
+  # kLightenVLarge in the controller), so agents transfer their already-mastered
+  # solo-push skill onto it immediately instead of needing a rare, precisely-
+  # timed multi-agent push to ever move it at all from a standing start. L4/L7
+  # restore real mass with the seek-and-push habit already ingrained.
+  #
+  # L8 (v5) is a new "vlarge anywhere" rung, mirroring L5's role for large:
+  # same blocks as L7, just spread=1. Without it, vlarge only ever spawned
+  # near goal before MixedFive's full-random spawn -- agents pushed it fine
+  # near goal but never learned to push it from the far half of the arena,
+  # since that distance was never isolated from also adding a 2nd large block.
+  #
   # L0-L2 thresholds sit ~70% of each lesson's achievable maximum (group
   # reward); these blocks are never IsHeavy so they're not reachable by the
   # heavy-block ratchet/shaping rewards below and were never implicated in
-  # the L4-L7 reward-hacking incident. L3+ sit ~85% -- at 70% (L4's original
-  # 2.8, L5's 5.0, L6's 6.5) agents cleared the bar by touching heavy blocks
-  # for ratchet/ignition reward without ever completing the push, and rode
-  # that through L4->L7 in under 1M steps. 85% forces enough reward that only
+  # the old L4-L7 reward-hacking incident. L3+ sit ~85% -- at 70% (old L4's
+  # 2.8, old L5's 5.0, old L6's 6.5) agents cleared the bar by touching heavy
+  # blocks for ratchet/ignition reward without ever completing the push, and
+  # rode that through in under 1M steps. 85% forces enough reward that only
   # genuinely-completed pushes can reach it.
   pb_lesson:
     curriculum:
@@ -80,40 +96,97 @@ environment_parameters:
           min_lesson_length: 150
           threshold: 1.5
         value: 2.0
-      - name: L3_SmallsPlusLargeNearGoal
+      - name: L3_SmallsPlusLightLargeNearGoal
         completion_criteria:
           measure: reward
           behavior: CommPushBlock
           signal_smoothing: true
-          min_lesson_length: 150
+          # 150 -> 3000: a policy that already spent millions of steps grinding
+          # the real-mass version (as this run had) clears the reward bar on the
+          # light version almost instantly, using whatever partial/solo pushing
+          # it already had -- which doesn't need or reinforce two agents ever
+          # being at the block together. A much longer floor (~1.2-1.8M steps at
+          # this lesson's typical short episode length) forces sustained
+          # repetition regardless of how fast the threshold itself is cleared,
+          # so the seek-and-push habit actually gets built, not just glimpsed.
+          min_lesson_length: 3000
+          # Large is temporarily as light as a small block here -- 3.4 (same bar
+          # as the real-mass lesson that follows) demands reliably clearing all
+          # 3 near-goal blocks before the mass ramps up, not just a lucky pass.
+          threshold: 3.4
+        value: 3.0
+      - name: L4_SmallsPlusLargeNearGoal
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlock
+          signal_smoothing: true
+          # 150 -> 1500: L3's light-mass rung reliably teaches solo pushing, but
+          # real-mass 2-agent coordination needs its own dwell time -- the L3->L4
+          # transition cleared 3.4 in under 200k steps (already-good solo-derived
+          # behavior), then jumped straight to L5 before genuine cooperation was
+          # practiced. Force real time here before generalizing to random spawn.
+          min_lesson_length: 1500
           # 2.8 -> 3.4: at 2.8 the two smalls (~1.9) let agents advance while
           # clearing the large only ~45% of the time; 3.4 demands ~75% -- the
           # 2-agent push must be a reliable skill before leaving the nursery.
           threshold: 3.4
-        value: 3.0
-      - name: L4_SmallsPlusLargeAnywhere
-        completion_criteria:
-          measure: reward
-          behavior: CommPushBlock
-          signal_smoothing: true
-          min_lesson_length: 150
-          threshold: 3.4
         value: 4.0
-      - name: L5_AddVeryLargeNearGoal
+      - name: L5_SmallsPlusLargeAnywhere
         completion_criteria:
           measure: reward
           behavior: CommPushBlock
           signal_smoothing: true
-          min_lesson_length: 150
-          threshold: 6.0
+          # Same reasoning as L4: don't let a lucky/solo-derived reward spike
+          # skip past real practice at random (harder) spawn positions.
+          min_lesson_length: 1500
+          threshold: 3.4
         value: 5.0
-      - name: L6_MixedFive
+      - name: L6_AddLightVeryLargeNearGoal
         completion_criteria:
           measure: reward
           behavior: CommPushBlock
           signal_smoothing: true
-          min_lesson_length: 150
-          threshold: 7.5
+          # Same reasoning as L3's 150->3000: force sustained dwell time on the
+          # light-mass rung regardless of how fast the reward bar clears.
+          min_lesson_length: 3000
+          # Same light-mass trick for the vlarge introduction, ~85% of the ~7 ceiling.
+          threshold: 6.0
         value: 6.0
-      - name: L7_FullTask
+      - name: L7_AddVeryLargeNearGoal
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlock
+          signal_smoothing: true
+          # 1500 -> 2000: pushing the vlarge takes 3 agents (vs 2 for large), a
+          # harder coordination event that needs more dwell time than L4 got.
+          min_lesson_length: 2000
+          threshold: 6.0
         value: 7.0
+      - name: L8_AddVeryLargeAnywhere
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlock
+          signal_smoothing: true
+          # NEW rung (v5): same blocks as L7, just spread=1 instead of near-goal
+          # -- mirrors L5's role for large. Without this, vlarge only ever spawned
+          # near goal (L6/L7) before MixedFive's full-random spawn; agents pushed
+          # it fine near goal but never learned to push it from the far half of
+          # the arena, since that was never isolated from also adding a 2nd
+          # large block at the same time. 2000 for the same 3-agent reason as L7.
+          min_lesson_length: 2000
+          threshold: 6.0
+        value: 8.0
+      - name: L9_MixedFive
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlock
+          signal_smoothing: true
+          # 3000 -> 2000: by this point agents already have real practice with
+          # vlarge at any distance (L8), so MixedFive is "add one more large
+          # block" on top of an already-generalized skill, not a from-scratch
+          # habit to build -- doesn't need L3/L6's full 3000.
+          min_lesson_length: 2000
+          threshold: 7.5
+        value: 9.0
+      - name: L10_FullTask
+        value: 10.0

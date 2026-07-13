@@ -28,6 +28,7 @@ public class CommPushBlockEnvController : MonoBehaviour
         [HideInInspector] public Vector3 StartingPos;
         [HideInInspector] public Quaternion StartingRot;
         [HideInInspector] public Rigidbody Rb;
+        [HideInInspector] public float StartingMass;
         [HideInInspector] public float PrevGoalDist;
         [HideInInspector] public Vector3 EpisodeStartPos;
         [HideInInspector] public float MaxDistFromStart;
@@ -77,12 +78,29 @@ public class CommPushBlockEnvController : MonoBehaviour
     // (v2's L3 = one lone large removed all familiar objects; the blockLarge
     // sensor channel had never activated before, so agents wandered at -0.5
     // for 1.3M steps without ever engaging it.)
-    //                                    L0    L1  L2  L3    L4  L5    L6  L7
-    static readonly int[]   kSmalls  = {  1,    1,  2,  2,    2,  2,    2,  2 };
-    static readonly int[]   kLarges  = {  0,    0,  0,  1,    1,  1,    2,  2 };
-    static readonly int[]   kVLarges = {  0,    0,  0,  0,    0,  1,    1,  2 };
-    static readonly float[] kSpread  = { 0.15f, 1f, 1f, 0.3f, 1f, 0.3f, 1f, 1f };
+    // v4: L3/L6 are "light mass" rungs -- the newly-introduced heavy block
+    // temporarily masses the same as a small block, so agents (who already know
+    // how to push smalls) transfer that skill onto it immediately instead of
+    // needing a rare, precisely-timed multi-agent push to ever move it at all.
+    // The very next lesson restores real mass with the seek-and-push habit
+    // already ingrained. (Real L3/L5 mass requirements were previously stalling
+    // for millions of steps: 2-agent co-location on the SAME heavy block, at the
+    // SAME time, almost never happened by chance from a standing start.)
+    // v5: L8 is a new "vlarge anywhere" rung (mirrors L5's role for large: same
+    // blocks as L7, just spread=1 instead of near-goal). Without it, vlarge only
+    // ever saw near-goal spawns (L6/L7) before MixedFive's full-random spawn --
+    // agents pushed it fine when it landed near goal, but never learned to push
+    // it from the far half of the arena at all, since that distance was never
+    // practiced on its own before a 2nd large block also got added at the same time.
+    //                                        L0    L1  L2  L3    L4    L5  L6    L7    L8  L9  L10
+    static readonly int[]   kSmalls        = { 1,    1,  2,  2,    2,    2,  2,    2,    2,  2,  2 };
+    static readonly int[]   kLarges        = { 0,    0,  0,  1,    1,    1,  1,    1,    1,  2,  2 };
+    static readonly int[]   kVLarges       = { 0,    0,  0,  0,    0,    0,  1,    1,    1,  1,  2 };
+    static readonly float[] kSpread        = { 0.15f, 1f, 1f, 0.3f, 0.3f, 1f, 0.3f, 0.3f, 1f, 1f, 1f };
+    static readonly bool[]  kLightenLarge  = { false, false, false, true,  false, false, false, false, false, false, false };
+    static readonly bool[]  kLightenVLarge = { false, false, false, false, false, false, true,  false, false, false, false };
 
+    private float m_SmallBlockMass;
     private int m_NumberOfRemainingBlocks;
     private SimpleMultiAgentGroup m_AgentGroup;
     private int m_ResetTimer;
@@ -102,6 +120,9 @@ public class CommPushBlockEnvController : MonoBehaviour
             item.StartingPos = item.T.transform.position;
             item.StartingRot = item.T.transform.rotation;
             item.Rb = item.T.GetComponent<Rigidbody>();
+            item.StartingMass = item.Rb.mass;
+            if (item.T.CompareTag("blockSmall"))
+                m_SmallBlockMass = item.StartingMass;
         }
         m_AgentGroup = new SimpleMultiAgentGroup();
         foreach (var item in AgentsList)
@@ -261,10 +282,12 @@ public class CommPushBlockEnvController : MonoBehaviour
 
         int wantSmall, wantLarge, wantVLarge;
         float spread;
+        bool lightenLarge, lightenVLarge;
         if (lesson < 0)
         {
             wantSmall = wantLarge = wantVLarge = int.MaxValue; // everything
             spread = 1f;
+            lightenLarge = lightenVLarge = false;
         }
         else
         {
@@ -273,6 +296,8 @@ public class CommPushBlockEnvController : MonoBehaviour
             wantLarge = kLarges[lesson];
             wantVLarge = kVLarges[lesson];
             spread = kSpread[lesson];
+            lightenLarge = kLightenLarge[lesson];
+            lightenVLarge = kLightenVLarge[lesson];
         }
 
         int activeCount = 0;
@@ -305,6 +330,17 @@ public class CommPushBlockEnvController : MonoBehaviour
                 item.T.transform.SetPositionAndRotation(pos, rot);
                 item.Rb.linearVelocity = Vector3.zero;
                 item.Rb.angularVelocity = Vector3.zero;
+
+                // Light-mass rungs (see kLightenLarge/kLightenVLarge): the block
+                // still carries its real tag/sensor signature, only the physics
+                // response changes. Always set explicitly (not just when
+                // lightened) so a real-mass lesson can't inherit a stale light
+                // mass left over from an earlier reset.
+                if (item.T.CompareTag("blockLarge"))
+                    item.Rb.mass = lightenLarge ? m_SmallBlockMass : item.StartingMass;
+                else if (item.T.CompareTag("blockVeryLarge"))
+                    item.Rb.mass = lightenVLarge ? m_SmallBlockMass : item.StartingMass;
+
                 item.T.gameObject.SetActive(true);
                 activeCount++;
 
