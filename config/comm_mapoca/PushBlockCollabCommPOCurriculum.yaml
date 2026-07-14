@@ -1,0 +1,128 @@
+behaviors:
+  # PARTIAL-OBSERVABILITY (7x7 grid) Comm-MAPOCA Push Block with the v5
+  # curriculum -- the communication-value experiment. Identical curriculum,
+  # rewards, and hyperparameters to PushBlockCollabCommCurriculum.yaml (the
+  # recipe that solved the full 6-block task under full observability as
+  # pushblock_comm_curr_s5); the only difference is the behavior name: agents
+  # carry a 20x20 GridSensor at Cell Scale 0.35 (a 7x7-world-unit local view),
+  # so most of the arena is invisible to each agent and teammates' messages are
+  # the only source of remote information. Hypothesis: under partial
+  # observability the emergent messages become load-bearing (e.g. recruiting a
+  # far-away agent to a heavy block it cannot see), which full-obs s5 never
+  # needed. Scene: PushBlockCollabCommPOCurriculum.unity.
+  CommPushBlockPO:
+    trainer_type: comm_mapoca
+    hyperparameters:
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 0.0003
+      beta: 0.01
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: constant
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    keep_checkpoints: 20
+    max_steps: 30000000
+    time_horizon: 64
+    summary_freq: 60000
+
+environment_parameters:
+  # Same 11-lesson table as PushBlockCollabCommCurriculum.yaml (see that file
+  # for the full rationale comments on light-mass rungs, anywhere-isolation
+  # rungs, thresholds, and min_lesson_length dwell times). Under 7x7 partial
+  # observability the early lessons may take longer to ignite (an agent must
+  # wander within sight of the block), so expect slower L0-L2 than full-obs;
+  # a REAL stall is reward flat AND lesson frozen for >3M steps.
+  pb_lesson:
+    curriculum:
+      - name: L0_OneSmallBesideGoal
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlockPO
+          signal_smoothing: true
+          min_lesson_length: 150
+          threshold: 0.7
+        value: 0.0
+      - name: L1_OneSmallAnywhere
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlockPO
+          signal_smoothing: true
+          min_lesson_length: 150
+          threshold: 0.7
+        value: 1.0
+      - name: L2_TwoSmall
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlockPO
+          signal_smoothing: true
+          min_lesson_length: 150
+          threshold: 1.5
+        value: 2.0
+      - name: L3_SmallsPlusLightLargeNearGoal
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlockPO
+          signal_smoothing: true
+          min_lesson_length: 3000
+          threshold: 3.4
+        value: 3.0
+      - name: L4_SmallsPlusLargeNearGoal
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlockPO
+          signal_smoothing: true
+          min_lesson_length: 1500
+          threshold: 3.4
+        value: 4.0
+      - name: L5_SmallsPlusLargeAnywhere
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlockPO
+          signal_smoothing: true
+          min_lesson_length: 1500
+          threshold: 3.4
+        value: 5.0
+      - name: L6_AddLightVeryLargeNearGoal
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlockPO
+          signal_smoothing: true
+          min_lesson_length: 3000
+          threshold: 6.0
+        value: 6.0
+      - name: L7_AddVeryLargeNearGoal
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlockPO
+          signal_smoothing: true
+          min_lesson_length: 2000
+          threshold: 6.0
+        value: 7.0
+      - name: L8_AddVeryLargeAnywhere
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlockPO
+          signal_smoothing: true
+          min_lesson_length: 2000
+          threshold: 6.0
+        value: 8.0
+      - name: L9_MixedFive
+        completion_criteria:
+          measure: reward
+          behavior: CommPushBlockPO
+          signal_smoothing: true
+          min_lesson_length: 2000
+          threshold: 7.5
+        value: 9.0
+      - name: L10_FullTask
+        value: 10.0
