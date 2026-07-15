@@ -70,7 +70,7 @@ Not applicable. This research evaluates autonomous learning agents in simulation
 
 **Qualitative observation.** With the attention-visualisation channel enabled (Section 6.4.1), the trained Walker's attention weight concentrates on the Oracle assigned to the currently wanted colour and shifts between Oracles when the target colour changes across episodes — consistent with the targeted-attention design intent [15], observed live in the scene view. *(Optional Fig. 7.3: screenshot of the attention-coloured gizmo lanes.)*
 
-**Relation to the staged validation.** Under Stage 1 of the development protocol (Section 6.8) with *hand-coded ground-truth* messages, the same environment converged to reward ≈ 3.4 in a short local run — the emergent protocol at 30M steps matches and exceeds the hand-coded configuration's performance, demonstrating that the learned 4-float code is at least as informative for the task as scripted ground truth delivered through the same channel.
+**Relation to the staged validation.** The delivery pipeline this run depends on — board, topology, presence flags, sensor rows, actor attention — had been validated independently of learning during development, using temporarily hand-coded ground-truth messages (Stage 1 of the protocol in Section 6.8). The present experiment is therefore a clean test of *message learning* alone: transport correctness was established beforehand, so the observed performance can be attributed to the emergent protocol rather than to any property of the plumbing.
 
 ### 7.7.2 E2: Push Block benchmark matrix **[PENDING — runs complete, analysis to be written]**
 
