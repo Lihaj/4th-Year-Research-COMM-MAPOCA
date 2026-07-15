@@ -13,10 +13,20 @@ PrefabInstance:
       propertyPath: m_BehaviorName
       value: CommPushBlockPO
       objectReference: {fileID: 0}
+    - target: {fileID: 4745168626611799876, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.73
+      objectReference: {fileID: 0}
     - target: {fileID: 5073301453790460913, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
       propertyPath: m_BehaviorName
       value: CommPushBlockPO
+      objectReference: {fileID: 0}
+    - target: {fileID: 5184175432989113525, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.73
       objectReference: {fileID: 0}
     - target: {fileID: 5305025950295668834, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
@@ -27,6 +37,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: PushBlockCollabAreaGrid CommPO
+      objectReference: {fileID: 0}
+    - target: {fileID: 5689160507926958139, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.73
       objectReference: {fileID: 0}
     - target: {fileID: 5691926509032646151, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
@@ -95,6 +110,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8160347206615710022, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
+      propertyPath: m_ShowGizmos
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8160347206615710022, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
       propertyPath: m_CellScale.x
       value: 0.35
       objectReference: {fileID: 0}
@@ -115,6 +135,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8580691152267051703, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
+      propertyPath: m_ShowGizmos
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8580691152267051703, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
       propertyPath: m_CellScale.x
       value: 0.35
       objectReference: {fileID: 0}
@@ -132,6 +157,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_GridSize.z
       value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 9085638843553721913, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      propertyPath: m_ShowGizmos
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9085638843553721913, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
