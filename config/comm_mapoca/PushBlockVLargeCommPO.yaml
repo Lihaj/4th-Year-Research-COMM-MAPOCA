@@ -1,0 +1,66 @@
+behaviors:
+  # MINIMAL CONTROLLED EXPERIMENT, comm arm (v6): ONE very-large block under
+  # 7x7 partial observability, 3-lesson curriculum (L11 light near-goal ->
+  # L12 real-mass near-goal -> L13 real-mass anywhere). The stock-poca baseline
+  # arm (PushBlockVLargeBaselinePO.yaml) mirrors EVERYTHING here -- same
+  # environment, same rewards, same fixed lesson schedule -- so the trainer is
+  # the only experimental variable. Lessons are PROGRESS-gated (fractions of
+  # max_steps), not reward-gated: both arms get an identical environment
+  # schedule, and stock poca needs no curriculum-fix code.
+  # Scene: PushBlockCollabCommPOCurriculum.unity (lesson table deactivates the
+  # other five blocks at runtime; REBUILD the Linux build after the v6 table
+  # extension or lessons 11-13 clamp to 10).
+  CommPushBlockPO:
+    trainer_type: comm_mapoca
+    hyperparameters:
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 0.0003
+      beta: 0.01
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: constant
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    keep_checkpoints: 25
+    max_steps: 12000000
+    time_horizon: 64
+    summary_freq: 50000
+
+environment_parameters:
+  # Fixed schedule over 12M steps: 2M light-mass ignition (0-16.7%; the light
+  # lesson plateaued at its ~3.0 ceiling within 0.5M in vlarge_comm_s1, so 3M
+  # was wasteful), 4M real-mass near-goal cooperation (16.7-50%), 6M full
+  # generalization (50-100%). measure: progress = fraction of max_steps
+  # completed -- identical timing for both arms.
+  pb_lesson:
+    curriculum:
+      - name: VL0_LightVeryLargeNearGoal
+        completion_criteria:
+          measure: progress
+          behavior: CommPushBlockPO
+          signal_smoothing: false
+          min_lesson_length: 0
+          threshold: 0.167
+        value: 11.0
+      - name: VL1_VeryLargeNearGoal
+        completion_criteria:
+          measure: progress
+          behavior: CommPushBlockPO
+          signal_smoothing: false
+          min_lesson_length: 0
+          # 0.50 -> 0.4167 (5M): VL1 reward plateaued at ~3.22 from 2.5M on in
+          # vlarge_comm_s1 -- mastered. The reclaimed 1M goes to VL2 (now 7M),
+          # the hard lesson where the arms are expected to separate.
+          threshold: 0.4167
+        value: 12.0
+      - name: VL2_VeryLargeAnywhere
+        value: 13.0

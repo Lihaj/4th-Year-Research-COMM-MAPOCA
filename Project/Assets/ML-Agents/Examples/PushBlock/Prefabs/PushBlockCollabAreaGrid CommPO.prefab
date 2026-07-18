@@ -10,23 +10,43 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4633114836945731584, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
+      propertyPath: m_Model
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 4633114836945731584, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
       propertyPath: m_BehaviorName
       value: CommPushBlockPO
+      objectReference: {fileID: 0}
+    - target: {fileID: 4633114836945731584, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      propertyPath: m_BehaviorType
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4745168626611799876, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 4.73
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5073301453790460913, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      propertyPath: m_Model
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 5073301453790460913, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
       propertyPath: m_BehaviorName
       value: CommPushBlockPO
       objectReference: {fileID: 0}
+    - target: {fileID: 5073301453790460913, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      propertyPath: m_BehaviorType
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5184175432989113525, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 4.73
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5305025950295668834, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
@@ -38,10 +58,20 @@ PrefabInstance:
       propertyPath: m_Name
       value: PushBlockCollabAreaGrid CommPO
       objectReference: {fileID: 0}
+    - target: {fileID: 5689160506226970436, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      propertyPath: m_Mass
+      value: 150
+      objectReference: {fileID: 0}
+    - target: {fileID: 5689160506357470258, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      propertyPath: m_Mass
+      value: 150
+      objectReference: {fileID: 0}
     - target: {fileID: 5689160507926958139, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 4.73
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5691926509032646151, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
@@ -95,9 +125,24 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5721240082465331071, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
+      propertyPath: m_Model
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5721240082465331071, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
       propertyPath: m_BehaviorName
       value: CommPushBlockPO
       objectReference: {fileID: 0}
+    - target: {fileID: 5721240082465331071, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      propertyPath: m_BehaviorType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7545533890886517922, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      propertyPath: awayFromStartReward
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8160347206615710022, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
       propertyPath: m_GridSize.x
@@ -161,7 +206,7 @@ PrefabInstance:
     - target: {fileID: 9085638843553721913, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
       propertyPath: m_ShowGizmos
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9085638843553721913, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
         type: 3}
@@ -176,5 +221,77 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5689945963949205187, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1678778159576296882}
+    - targetCorrespondingSourceObject: {fileID: 5184961439070784077, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5780845550448394566}
+    - targetCorrespondingSourceObject: {fileID: 4746639364164989372, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2425527025179107119}
   m_SourcePrefab: {fileID: 100100000, guid: 1360eb1dfeabce549ad79bb3ca9d7479, type: 3}
+--- !u!1 &3607579079104216055 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5689945963949205187, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+    type: 3}
+  m_PrefabInstance: {fileID: 8999895998423571764}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1678778159576296882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3607579079104216055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ab7bbaaefc863f46bdfa5ae0a9f0042, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GoalDirectionSensorComponent
+  goal: {fileID: 0}
+  normalizationScale: 12.5
+--- !u!1 &4256644157727479673 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5184961439070784077, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+    type: 3}
+  m_PrefabInstance: {fileID: 8999895998423571764}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5780845550448394566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4256644157727479673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ab7bbaaefc863f46bdfa5ae0a9f0042, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GoalDirectionSensorComponent
+  goal: {fileID: 0}
+  normalizationScale: 12.5
+--- !u!1 &4411696812546567304 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4746639364164989372, guid: 1360eb1dfeabce549ad79bb3ca9d7479,
+    type: 3}
+  m_PrefabInstance: {fileID: 8999895998423571764}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2425527025179107119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4411696812546567304}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ab7bbaaefc863f46bdfa5ae0a9f0042, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GoalDirectionSensorComponent
+  goal: {fileID: 0}
+  normalizationScale: 12.5

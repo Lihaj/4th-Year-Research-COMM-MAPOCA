@@ -1,0 +1,55 @@
+behaviors:
+  # MINIMAL CONTROLLED EXPERIMENT, baseline arm (v6): STOCK MA-POCA (unmodified
+  # poca trainer) on the IDENTICAL environment and IDENTICAL fixed lesson
+  # schedule as the comm arm (PushBlockVLargeCommPO.yaml). Only differences:
+  # trainer_type and the agents carrying no communication machinery.
+  # Scene: PushBlockVLargeBaselinePO.unity (stock PushAgentCollab agents, 7x7
+  # grid sensors, same curriculum controller and reward settings).
+  PushBlockCollabPO:
+    trainer_type: poca
+    hyperparameters:
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 0.0003
+      beta: 0.01
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: constant
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    keep_checkpoints: 25
+    max_steps: 12000000
+    time_horizon: 64
+    summary_freq: 50000
+
+environment_parameters:
+  # Mirrors the comm arm's schedule exactly -- see PushBlockVLargeCommPO.yaml.
+  # 12M total: VL0 0-2M, VL1 2M-5M, VL2 5M-12M.
+  pb_lesson:
+    curriculum:
+      - name: VL0_LightVeryLargeNearGoal
+        completion_criteria:
+          measure: progress
+          behavior: PushBlockCollabPO
+          signal_smoothing: false
+          min_lesson_length: 0
+          threshold: 0.167
+        value: 11.0
+      - name: VL1_VeryLargeNearGoal
+        completion_criteria:
+          measure: progress
+          behavior: PushBlockCollabPO
+          signal_smoothing: false
+          min_lesson_length: 0
+          threshold: 0.4167
+        value: 12.0
+      - name: VL2_VeryLargeAnywhere
+        value: 13.0

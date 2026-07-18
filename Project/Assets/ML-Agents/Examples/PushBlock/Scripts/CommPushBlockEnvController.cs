@@ -15,7 +15,13 @@ public class CommPushBlockEnvController : MonoBehaviour
     [System.Serializable]
     public class PlayerInfo
     {
-        public CommPushAgentCollab Agent;
+        // Base Agent type on purpose: the SAME controller must drive both the
+        // comm-enabled CommPushAgentCollab arenas and the stock PushAgentCollab
+        // baseline arenas (v6 minimal experiment), so the algorithm -- not the
+        // environment -- is the only difference between the two arms. Nothing
+        // here needs comm-specific members; existing scene references survive
+        // the widening unchanged.
+        public Unity.MLAgents.Agent Agent;
         [HideInInspector] public Vector3 StartingPos;
         [HideInInspector] public Quaternion StartingRot;
         [HideInInspector] public Rigidbody Rb;
@@ -92,13 +98,20 @@ public class CommPushBlockEnvController : MonoBehaviour
     // agents pushed it fine when it landed near goal, but never learned to push
     // it from the far half of the arena at all, since that distance was never
     // practiced on its own before a 2nd large block also got added at the same time.
-    //                                        L0    L1  L2  L3    L4    L5  L6    L7    L8  L9  L10
-    static readonly int[]   kSmalls        = { 1,    1,  2,  2,    2,    2,  2,    2,    2,  2,  2 };
-    static readonly int[]   kLarges        = { 0,    0,  0,  1,    1,    1,  1,    1,    1,  2,  2 };
-    static readonly int[]   kVLarges       = { 0,    0,  0,  0,    0,    0,  1,    1,    1,  1,  2 };
-    static readonly float[] kSpread        = { 0.15f, 1f, 1f, 0.3f, 0.3f, 1f, 0.3f, 0.3f, 1f, 1f, 1f };
-    static readonly bool[]  kLightenLarge  = { false, false, false, true,  false, false, false, false, false, false, false };
-    static readonly bool[]  kLightenVLarge = { false, false, false, false, false, false, true,  false, false, false, false };
+    // v6: L11-L13 are the MINIMAL "very-large only" experiment (the controlled
+    // comm-vs-silent comparison): ONE very-large block, no other blocks, under
+    // 7x7 partial observability. L11 introduces it light-massed near the goal,
+    // L12 restores real mass near the goal, L13 moves to fully random spawns.
+    // Both the comm_mapoca arm and the stock poca baseline arm run these SAME
+    // lessons on a fixed progress-gated schedule, so the algorithm is the only
+    // experimental variable.
+    //                                        L0    L1  L2  L3    L4    L5  L6    L7    L8  L9  L10   L11   L12   L13
+    static readonly int[]   kSmalls        = { 1,    1,  2,  2,    2,    2,  2,    2,    2,  2,  2,    0,    0,    0 };
+    static readonly int[]   kLarges        = { 0,    0,  0,  1,    1,    1,  1,    1,    1,  2,  2,    0,    0,    0 };
+    static readonly int[]   kVLarges       = { 0,    0,  0,  0,    0,    0,  1,    1,    1,  1,  2,    1,    1,    1 };
+    static readonly float[] kSpread        = { 0.15f, 1f, 1f, 0.3f, 0.3f, 1f, 0.3f, 0.3f, 1f, 1f, 1f,  0.3f, 0.3f, 1f };
+    static readonly bool[]  kLightenLarge  = { false, false, false, true,  false, false, false, false, false, false, false, false, false, false };
+    static readonly bool[]  kLightenVLarge = { false, false, false, false, false, false, true,  false, false, false, false, true,  false, false };
 
     private float m_SmallBlockMass;
     private int m_NumberOfRemainingBlocks;
