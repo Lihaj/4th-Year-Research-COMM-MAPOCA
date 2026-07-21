@@ -1,0 +1,61 @@
+behaviors:
+  # DOUBLE-ARENA FOLLOW-UP (v7), baseline arm: STOCK MA-POCA (unmodified poca
+  # trainer) on the IDENTICAL environment and IDENTICAL fixed lesson schedule as
+  # the comm arm (PushBlockVLargeCommPO2x.yaml). Only trainer_type and the agents
+  # carrying no communication machinery differ. See that file for the arena/goal
+  # design rationale. Scene: PushBlockVLargeBaselinePO2x.unity.
+  PushBlockCollabPO2x:
+    trainer_type: poca
+    hyperparameters:
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 0.0003
+      beta: 0.01
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: constant
+      beta_schedule: constant
+      epsilon_schedule: constant
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    keep_checkpoints: 25
+    max_steps: 12000000
+    time_horizon: 64
+    summary_freq: 50000
+
+environment_parameters:
+  # Mirrors the comm arm's schedule exactly -- see PushBlockVLargeCommPO2x.yaml.
+  # NOTE: vlarge2x_poca_s1 (completed, 12M) was trained WITHOUT explicit
+  # beta_schedule/epsilon_schedule (only added here after the fact, for config
+  # consistency/any future re-run) -- yet its logged Beta/Epsilon were flat the
+  # whole run, unlike the comm arm's, despite byte-identical optimizer defaults
+  # (both independently default to LINEAR). Root cause not found by source
+  # inspection; unresolved anomaly, noted for the thesis methodology section.
+  pb_lesson:
+    curriculum:
+      - name: VL0_LightVeryLargeNearGoal
+        completion_criteria:
+          measure: progress
+          behavior: PushBlockCollabPO2x
+          signal_smoothing: false
+          min_lesson_length: 0
+          threshold: 0.167
+        value: 11.0
+      - name: VL1_VeryLargeNearGoal
+        completion_criteria:
+          measure: progress
+          behavior: PushBlockCollabPO2x
+          signal_smoothing: false
+          min_lesson_length: 0
+          threshold: 0.4167
+        value: 12.0
+      - name: VL2_VeryLargeAnywhere
+        value: 13.0

@@ -57,6 +57,9 @@ public class CommPushBlockEnvController : MonoBehaviour
     public bool UseRandomAgentPosition = true;
     public bool UseRandomBlockRotation = true;
     public bool UseRandomBlockPosition = true;
+
+    [Tooltip("The platform gets a random 0/90/180/270 rotation every episode, independent of the four toggles above -- this is what makes the goal wall APPEAR to move each episode. Positions/rotations above are stored and restored in world space, so manually-placed agents/blocks snap back correctly regardless -- but goalZone rotates WITH the platform, so a manually authored layout (e.g. 'agent facing the block') can end up misaligned with the goal on whichever rotation lands that episode. Uncheck for controlled manual-placement tests; leave checked everywhere else.")]
+    public bool UseRandomArenaRotation = true;
     private PushBlockSettings m_PushBlockSettings;
 
     [Header("Communication")]
@@ -70,11 +73,26 @@ public class CommPushBlockEnvController : MonoBehaviour
     [Tooltip("Minimum flat distance from the goal zone's center that near-goal spawns keep, so a block never starts ON the strip (instant score, nothing learned). Should be ~strip half-width + block size + margin.")]
     public float minGoalDistance = 5f;
 
+    [Tooltip("Divisor in GetCurriculumSpawnPos's maxDist = minGoalDistance + spread * spreadRangeScale. Scales the near-goal lesson distance bands to the arena size -- e.g. double it alongside minGoalDistance for a 2x-size arena so spread fractions (0.3, 1.0, ...) keep the same PROPORTIONAL meaning. Default 10 preserves every existing scene's behavior unchanged.")]
+    public float spreadRangeScale = 10f;
+
+    [Tooltip("If true, goalZone is teleported to a random point within the arena (wall-margin respected) at the start of every episode, before agents/blocks are placed -- for 'goal can be anywhere' scenes. If false (default), goalZone stays wherever it's placed in the prefab/scene (the usual wall-strip + arena-rotation setup).")]
+    public bool randomizeGoalPosition = false;
+
+    [Tooltip("Half-width/half-depth kept clear of the walls when randomizeGoalPosition places the goal (should be >= the goal pad's own half-size, so it never clips through a wall). Ignored unless randomizeGoalPosition is true.")]
+    public float goalPlacementHalfSize = 2.5f;
+
+    [Tooltip("Draw the GetRandomSpawnPos() sampling rectangle in the Scene view (yellow), visible in both Edit and Play mode. This is the region BOTH agents (always) and the block (only at spread >= 0.999, i.e. the 'anywhere' lesson) are drawn from -- ground extents x spawnAreaMarginMultiplier, centered on the ground.")]
+    public bool showSpawnAreaGizmo = true;
+
     [Tooltip("Potential-based shaping for HEAVY blocks (blockLarge/blockVeryLarge): each physics step the team earns (previous - current block distance to goal) x this scale. Random exploration rarely completes a heavy push, so this dense signal ignites the skill; pushing goal-ward pays, pushing away costs. 0 disables (default: benchmark scenes must opt in explicitly). Requires goalZone.")]
     public float heavyShapingScale = 0f;
 
     [Tooltip("Video-exact shaping (adabeat.com PushBlock experiment): the team earns this reward EACH TIME a heavy block moves further from its episode-start position than ever before (a ratchet - only new record distances pay, so jiggling in place earns nothing). Use 0.001 with goal walls around the arena; 0 disables. Independent of goalZone.")]
     public float awayFromStartReward = 0f;
+
+    [Tooltip("Force a lesson index locally, ignoring the pb_lesson environment parameter. -1 = disabled (default: lesson comes from the trainer, or -1 = all blocks when no trainer is connected). Environment parameters only exist while a Python trainer is attached, so INFERENCE always sees the all-blocks default -- set this to the lesson you trained (e.g. 13 = very-large-anywhere) to watch a trained model in its own task.")]
+    public int forceLessonOverride = -1;
 
     // Per-lesson difficulty table, selected by the 'pb_lesson' environment parameter.
     // Blocks are picked BY TAG (blockSmall/blockLarge/blockVeryLarge), so the
@@ -226,6 +244,21 @@ public class CommPushBlockEnvController : MonoBehaviour
         return randomSpawnPos;
     }
 
+    /// <summary>
+    /// Uniform random point within the arena, kept goalPlacementHalfSize clear of the
+    /// walls. No collision retry (unlike GetRandomSpawnPos) -- the goal's own collider
+    /// would trivially self-overlap, and a goal briefly overlapping something at spawn
+    /// isn't a hazard the way a stacked block/agent would be.
+    /// </summary>
+    Vector3 GetRandomGoalPos()
+    {
+        var marginX = areaBounds.extents.x * m_PushBlockSettings.spawnAreaMarginMultiplier - goalPlacementHalfSize;
+        var marginZ = areaBounds.extents.z * m_PushBlockSettings.spawnAreaMarginMultiplier - goalPlacementHalfSize;
+        var x = Random.Range(-marginX, marginX);
+        var z = Random.Range(-marginZ, marginZ);
+        return ground.transform.position + new Vector3(x, 0f, z);
+    }
+
     void ResetBlock(BlockInfo block)
     {
         block.T.position = GetRandomSpawnPos();
@@ -271,10 +304,24 @@ public class CommPushBlockEnvController : MonoBehaviour
         if (commChannel != null)
             commChannel.ClearBoard();
 
-        // Random platform rotation
-        var rotation = Random.Range(0, 4);
-        var rotationAngle = rotation * 90f;
-        area.transform.Rotate(new Vector3(0f, rotationAngle, 0f));
+        // Random platform rotation (skippable for controlled manual-placement tests --
+        // see UseRandomArenaRotation tooltip: goalZone is a child of area and rotates
+        // with it, which can misalign a hand-authored agent/block layout).
+        if (UseRandomArenaRotation)
+        {
+            var rotation = Random.Range(0, 4);
+            var rotationAngle = rotation * 90f;
+            area.transform.Rotate(new Vector3(0f, rotationAngle, 0f));
+        }
+
+        // Goal must move BEFORE agents/blocks: block spawn (GetCurriculumSpawnPos) and
+        // the heavy-shaping baseline (PrevGoalDist, set below) both read goalZone.position.
+        if (randomizeGoalPosition && goalZone != null)
+        {
+            var p = GetRandomGoalPos();
+            p.y = goalZone.position.y;
+            goalZone.position = p;
+        }
 
         foreach (var item in AgentsList)
         {
@@ -289,9 +336,12 @@ public class CommPushBlockEnvController : MonoBehaviour
         // --- CURRICULUM: which blocks participate, and where they spawn ---
         // 'pb_lesson' (set per lesson in the curriculum YAML) indexes the difficulty
         // table above. Default -1 = no curriculum = all blocks, fully random spawn,
-        // so non-curriculum scenes behave exactly as before.
-        int lesson = Mathf.RoundToInt(
-            Academy.Instance.EnvironmentParameters.GetWithDefault("pb_lesson", -1f));
+        // so non-curriculum scenes behave exactly as before. forceLessonOverride
+        // takes priority when >= 0 (inference has no trainer to supply pb_lesson).
+        int lesson = forceLessonOverride >= 0
+            ? forceLessonOverride
+            : Mathf.RoundToInt(
+                Academy.Instance.EnvironmentParameters.GetWithDefault("pb_lesson", -1f));
 
         int wantSmall, wantLarge, wantVLarge;
         float spread;
@@ -405,8 +455,9 @@ public class CommPushBlockEnvController : MonoBehaviour
     /// <summary>
     /// Block spawn position in a tight distance band from the goal zone (spread 0)
     /// widening toward "anywhere in the arena" (spread 1, which bypasses this function
-    /// entirely). Short pushes in early lessons give frequent accidental scores,
-    /// igniting the reward bootstrap.
+    /// entirely -- GetSafeBlockSpawnPos's BlockPosTouchesGoal retry, below, is what
+    /// keeps it off the goal strip regardless of spread). Short pushes in early
+    /// lessons give frequent accidental scores, igniting the reward bootstrap.
     /// </summary>
     Vector3 GetCurriculumSpawnPos(float spread)
     {
@@ -419,7 +470,7 @@ public class CommPushBlockEnvController : MonoBehaviour
         // spread like 0.15 could still leave the block several units out. Sampling
         // directly within [minGoalDistance, minGoalDistance + spread*10] keeps every
         // near-goal lesson consistently tight regardless of arena rotation.
-        float maxDist = minGoalDistance + spread * 10f;
+        float maxDist = minGoalDistance + spread * spreadRangeScale;
 
         for (int i = 0; i < 25; i++)
         {
@@ -443,5 +494,34 @@ public class CommPushBlockEnvController : MonoBehaviour
         // Repeatedly collided near the goal anchor: fall back to a plain
         // collision-checked random spot rather than spawning on top of something.
         return GetRandomSpawnPos();
+    }
+
+    void OnDrawGizmos()
+    {
+        if (!showSpawnAreaGizmo || ground == null)
+            return;
+
+        var groundCollider = ground.GetComponent<Collider>();
+        if (groundCollider == null)
+            return;
+
+        // Read live collider bounds (works in Edit mode too, unlike the cached
+        // areaBounds field which is only set in Start()) so this is visible without
+        // pressing Play.
+        var bounds = groundCollider.bounds;
+        var settings = m_PushBlockSettings != null ? m_PushBlockSettings : FindFirstObjectByType<PushBlockSettings>();
+        if (settings == null)
+            return;
+
+        var marginX = bounds.extents.x * settings.spawnAreaMarginMultiplier;
+        var marginZ = bounds.extents.z * settings.spawnAreaMarginMultiplier;
+        var center = ground.transform.position;
+        center.y = bounds.max.y + 0.05f; // just above the floor to avoid z-fighting
+        var size = new Vector3(marginX * 2f, 0.02f, marginZ * 2f);
+
+        Gizmos.color = new Color(1f, 1f, 0f, 0.15f);
+        Gizmos.DrawCube(center, size);
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireCube(center, size);
     }
 }

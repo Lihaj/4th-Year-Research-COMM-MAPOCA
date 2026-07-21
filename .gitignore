@@ -6,6 +6,21 @@
 # Output Builds
 /Builds
 
+# Training results/checkpoints copied into Project/Assets so Unity can see the
+# .onnx for in-Editor model assignment during manual testing -- these are
+# regenerable binary artifacts (.pt/.onnx/tfevents), not source, and belong in
+# /results, not committed here. Add new run-id folder names as they show up.
+/Project/Assets/pushblock_comm_curr_s5/
+/Project/Assets/pushblock_comm_curr_s5.meta
+/Project/Assets/vlarge2x_comm_s2/
+/Project/Assets/vlarge2x_comm_s2.meta
+/Project/Assets/vlarge2x_poca_s1/
+/Project/Assets/vlarge2x_poca_s1.meta
+/Project/Assets/vlarge_comm_s3/
+/Project/Assets/vlarge_comm_s3.meta
+/Project/Assets/vlarge_poca_s1/
+/Project/Assets/vlarge_poca_s1.meta
+
 # Training environments
 /envs
 

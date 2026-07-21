@@ -1,0 +1,72 @@
+behaviors:
+  # DOUBLE-ARENA FOLLOW-UP (v7) to the v6 minimal controlled experiment: same task
+  # (ONE very-large block, requires 3 agents, 7x7 PO view -- UNCHANGED absolute
+  # sensor FOV) but the arena is 2x linear size (25x25 -> 50x50) and the goal is
+  # a freely-repositioned pad anywhere in the arena each episode, instead of a
+  # fixed wall strip. Keeping the 7x7 view fixed while doubling the arena shrinks
+  # the visible fraction from ~8% to ~2%, deliberately making "find the block by
+  # wandering" harder -- this is the manipulation meant to make communication's
+  # value larger and clearer than in v6 (where the manual-placement test already
+  # showed comm-arm agents beelining to the exact current block position via
+  # attention, and poca-arm agents undirected-wandering, sometimes off the map).
+  # Only trainer_type + agent comm machinery differ from the baseline arm
+  # (PushBlockVLargeBaselinePO2x.yaml). Scene: PushBlockCollabCommPO2xCurriculum.unity.
+  CommPushBlockPO2x:
+    trainer_type: comm_mapoca
+    hyperparameters:
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 0.0003
+      beta: 0.01
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: constant
+      beta_schedule: constant
+      epsilon_schedule: constant
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    keep_checkpoints: 25
+    max_steps: 18000000
+    time_horizon: 64
+    summary_freq: 50000
+
+environment_parameters:
+  # Same lesson-table VALUES as v6 (11/12/13 select vlarge-only, mass-lighten
+  # rules unchanged) -- block selection doesn't reference arena size at all.
+  # PROGRESS-gated fractions of max_steps: same thresholds as the original 12M
+  # run (0.167 / 0.4167), now against an 18M budget (~3M / ~7.5M boundaries) --
+  # extended (2026-07-21) from 12M because entropy + episode length hadn't
+  # flattened by 12M (still declining), unlike the poca baseline which had
+  # plateaued by ~6M. Resuming from the 12M checkpoint is safe: current step
+  # (12M) is already past both new fractional boundaries, so the curriculum
+  # resolves straight to VL2_VeryLargeAnywhere on resume, no lesson regression.
+  # "Near-goal" distance bands scale with the arena via the controller's
+  # minGoalDistance (3->6) and spreadRangeScale (10->20) fields, not the YAML.
+  pb_lesson:
+    curriculum:
+      - name: VL0_LightVeryLargeNearGoal
+        completion_criteria:
+          measure: progress
+          behavior: CommPushBlockPO2x
+          signal_smoothing: false
+          min_lesson_length: 0
+          threshold: 0.167
+        value: 11.0
+      - name: VL1_VeryLargeNearGoal
+        completion_criteria:
+          measure: progress
+          behavior: CommPushBlockPO2x
+          signal_smoothing: false
+          min_lesson_length: 0
+          threshold: 0.4167
+        value: 12.0
+      - name: VL2_VeryLargeAnywhere
+        value: 13.0
